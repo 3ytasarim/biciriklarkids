@@ -12,8 +12,7 @@ next-env.d.ts
 .env.*
 !.env.example
 
-# yüklenen dosyalar (kalıcı disk / ileride obje depolama)
-/storage/
+# yüklenen dosyalar: storage/uploads repoda tutulur (ürün/kategori görselleri kurulumla gelir)
 
 # misc
 .DS_Store
