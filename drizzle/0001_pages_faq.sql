@@ -1,0 +1,1 @@
+ALTER TABLE "pages" ADD COLUMN "faq" jsonb DEFAULT '[]'::jsonb NOT NULL;

@@ -1,0 +1,882 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+/*
+ * BICIRIKLAR KIDS — tasarım sistemi
+ * Logo: mavi konturlu, beyaz "bulut" harfler → marka rengi logo mavisi (brand), metin lacivert (ink),
+ * zeminler çok hafif gökyüzü beyazı. Bulut dili arayüzde yalnızca ince ipuçlarıyla (yumuşak gökyüzü gradyanı,
+ * düşük opaklıklı bulut formları, yuvarlak köşeler) — logo sayfada "yapıştırılmış" durmasın diye.
+ * Ürün renkleri (güneş, mercan, yaprak, ahududu, lila) kontrollü vurgu; mercan ayrıca indirim/fiyat vurgusu.
+ * İmza motif: "dikiş" — kesikli çizgi. Kontrast: *-ink tonları AA 4.5:1+.
+ */
+@theme {
+  /* Zeminler (gökyüzü beyazı) */
+  --color-paper: #fbfdff;
+  --color-cream: #f1f7fd;
+  --color-sand: #e3edf8;
+  --color-line: #e2eaf3;
+  --color-line-strong: #ccd9e8;
+
+  /* Metin (lacivert) */
+  --color-ink: #10284a;
+  --color-ink-soft: #46597a;
+  --color-muted: #5d6d88;
+
+  /* Marka (logo mavisi) */
+  --color-brand: #1e8cf5;
+  --color-brand-ink: #0067d1;
+  --color-brand-deep: #0a4fa8;
+  --color-brand-50: #eaf5ff;
+  --color-brand-100: #d4eaff;
+  /* Footer: lacivertin bir ton açığı (logo mavisine yakın) */
+  --color-footer: #1c3d6b;
+
+  /* Vurgu renkleri */
+  --color-coral: #e8573f;
+  --color-coral-ink: #b83a24; /* WCAG AA: coral-50 üzerinde 5.0:1 */
+  --color-coral-50: #fdede9;
+  --color-sun: #f6b73c;
+  --color-sun-ink: #8a5a00;
+  --color-sun-50: #fef4dc;
+  --color-leaf: #3f9b6e;
+  --color-leaf-ink: #23704b;
+  --color-leaf-50: #e7f4ed;
+  --color-sky: #4ea3e0;
+  --color-sky-ink: #1f6aa3;
+  --color-sky-50: #e5f1fb;
+  --color-berry: #e2679b;
+  --color-berry-ink: #b03a6c;
+  --color-berry-50: #fce9f1;
+  --color-lilac: #9a8ce0;
+  --color-lilac-ink: #5f4fb5;
+  --color-lilac-50: #efecfb;
+
+  /* Anlamsal */
+  --color-success: #23704b;
+  --color-warning: #8a5a00;
+  --color-danger: #b42318;
+
+  /* Tipografi */
+  --font-sans: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-nunito-display), var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+
+  /* Köşe yarıçapları */
+  --radius-xs: 8px;
+  --radius-sm: 12px;
+  --radius-md: 18px;
+  --radius-lg: 26px;
+  --radius-xl: 36px;
+
+  /* Gölgeler (sıcak, düşük opaklık) */
+  --shadow-soft: 0 1px 2px rgb(16 40 74 / 0.04), 0 8px 24px -12px rgb(16 40 74 / 0.12);
+  --shadow-lift: 0 2px 4px rgb(16 40 74 / 0.04), 0 24px 48px -24px rgb(16 40 74 / 0.24);
+  --shadow-pop: 0 30px 80px -30px rgb(16 40 74 / 0.35);
+
+  /* Hareket */
+  --ease-premium: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --animate-rise: rise 0.8s var(--ease-premium) both;
+  --animate-fade: fade 0.6s var(--ease-soft) both;
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+  @keyframes shimmer {
+    from {
+      background-position: -400px 0;
+    }
+    to {
+      background-position: 400px 0;
+    }
+  }
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: 7rem;
+  }
+  body {
+    @apply bg-paper font-sans text-ink antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display;
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
+  ::selection {
+    @apply bg-sun text-ink;
+  }
+  :focus-visible {
+    outline: 2.5px solid var(--color-brand-ink);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+  [hidden] {
+    display: none !important;
+  }
+  /* Grid öğeleri içerik genişliğine göre sütunu taşırmasın (mobil tek sütun güvencesi) */
+  :where(.grid) > * {
+    min-width: 0;
+  }
+  /* Yatay taşmaya karşı son güvence (mobil) */
+  body {
+    overflow-x: clip;
+  }
+}
+
+@layer components {
+  /* Sayfa kabı: 320px → 2560px, mobilde 16px kenar boşluğu */
+  .shell {
+    @apply mx-auto w-full max-w-[1440px] px-4 sm:px-6 lg:px-10;
+  }
+
+  /* Kısa üst etiket (tüm bölümlerde standart): kapsül, yarı saydam zemin, ince kenarlık, nabız noktası, cümle düzeni */
+  .eyebrow {
+    @apply inline-flex w-fit items-center gap-2.5 rounded-full border border-brand/20 bg-white/70 px-4 py-1.5 text-[13px] font-bold text-ink shadow-[0_8px_24px_-14px_rgb(0_103_209/0.45)] backdrop-blur-md sm:py-2 sm:text-sm;
+  }
+  .eyebrow::before {
+    content: "";
+    @apply h-2 w-2 shrink-0 rounded-full bg-brand;
+    animation: dot-pulse 2.2s ease-out infinite;
+  }
+  /* Menü / arama içi küçük başlık (kapsülsüz) */
+  .label-caps {
+    @apply block text-[12px] font-extrabold tracking-[0.16em] text-brand-ink uppercase;
+  }
+
+  .display-1 {
+    @apply font-display text-[2.55rem] leading-[1.02] font-extrabold tracking-[-0.035em] min-[400px]:text-[2.9rem] sm:text-6xl lg:text-[4.6rem] 2xl:text-[5.4rem];
+  }
+  .display-2 {
+    @apply font-display text-[2rem] leading-[1.08] font-extrabold tracking-[-0.03em] sm:text-[2.6rem] lg:text-[3.3rem];
+  }
+  .display-3 {
+    @apply font-display text-[1.6rem] leading-[1.14] font-extrabold tracking-[-0.025em] sm:text-3xl lg:text-[2.25rem];
+  }
+  .lead {
+    @apply text-[1.05rem] leading-relaxed text-ink-soft sm:text-lg;
+  }
+
+  /* Butonlar — min 48px dokunma alanı */
+  /* Tailwind v4: bileşen sınıfı @apply ile başka sınıfa eklenemez → ortak taban grup seçiciyle */
+  .btn,
+  .btn-primary,
+  .btn-dark,
+  .btn-outline,
+  .btn-ghost {
+    @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-6 text-[15px] font-extrabold whitespace-nowrap transition-[background-color,color,box-shadow,transform] duration-300 ease-(--ease-premium) select-none active:scale-[0.98] disabled:pointer-events-none disabled:opacity-55;
+  }
+  .btn-primary {
+    @apply bg-brand-ink text-white shadow-[0_12px_28px_-12px_rgb(0_103_209/0.65)] hover:bg-brand-deep;
+  }
+  .btn-dark {
+    @apply bg-ink text-white hover:bg-[#1d3b66];
+  }
+  .btn-outline {
+    @apply border-[1.5px] border-ink/15 bg-white text-ink hover:border-ink;
+  }
+  .btn-ghost {
+    @apply px-4 text-ink hover:bg-ink/5;
+  }
+  .btn-sm {
+    @apply min-h-10 px-4 text-sm;
+  }
+
+  .icon-btn {
+    @apply relative inline-flex h-11 w-11 items-center justify-center rounded-full text-ink transition-colors duration-200 hover:bg-ink/6;
+  }
+
+  /* Dikiş motifi: kesikli iç çerçeve */
+  .stitch {
+    position: relative;
+  }
+  .stitch::after {
+    content: "";
+    position: absolute;
+    inset: 7px;
+    border: 1.5px dashed currentColor;
+    border-radius: inherit;
+    opacity: 0.35;
+    pointer-events: none;
+  }
+  .stitch-line {
+    height: 2px;
+    background-image: linear-gradient(90deg, currentColor 55%, transparent 55%);
+    background-size: 12px 2px;
+    background-repeat: repeat-x;
+  }
+
+  .link-underline {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-size: 0% 1.5px;
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    transition: background-size 0.45s var(--ease-premium);
+  }
+  .link-underline:hover,
+  .link-underline:focus-visible {
+    background-size: 100% 1.5px;
+  }
+
+  /* Form */
+  .field {
+    @apply block min-h-12 w-full rounded-sm border-[1.5px] border-line-strong bg-white px-4 text-[16px] text-ink transition-colors outline-none placeholder:text-muted/70 focus:border-ink aria-[invalid=true]:border-danger;
+  }
+  .field-label {
+    @apply mb-1.5 block text-sm font-bold text-ink;
+  }
+
+  /* Skeleton */
+  .skeleton {
+    background: linear-gradient(90deg, var(--color-sand) 0%, #f3f8fe 40%, var(--color-sand) 80%);
+    background-size: 800px 100%;
+    animation: shimmer 1.4s linear infinite;
+  }
+
+  /* Kaydırma şeridi (yatay ürün/kategori listeleri) */
+  .scroller {
+    @apply flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain pb-2 scroll-px-4 sm:scroll-px-6;
+    scrollbar-width: none;
+  }
+  .scroller::-webkit-scrollbar {
+    display: none;
+  }
+  .scroller > * {
+    @apply snap-start;
+  }
+
+  /* Zengin metin içeriği (blog, kategori içeriği, yasal sayfalar). Kullanım: class="prose rich" */
+  .rich {
+    @apply max-w-none;
+    --tw-prose-body: var(--color-ink-soft);
+    --tw-prose-headings: var(--color-ink);
+    --tw-prose-links: var(--color-brand-ink);
+    --tw-prose-bold: var(--color-ink);
+    --tw-prose-quotes: var(--color-ink);
+    --tw-prose-quote-borders: var(--color-sun);
+    --tw-prose-bullets: var(--color-brand);
+    --tw-prose-counters: var(--color-brand-ink);
+    --tw-prose-hr: var(--color-line-strong);
+  }
+  .rich :where(h2, h3, h4) {
+    @apply font-display font-extrabold tracking-[-0.02em];
+  }
+  .rich :where(img) {
+    @apply h-auto w-full rounded-md;
+  }
+
+  /* Kaydırınca beliren içerik — yalnızca JS çalışıyorsa gizli başlar */
+  .js .reveal {
+    opacity: 0;
+    transform: translateY(22px);
+    transition:
+      opacity 0.8s var(--ease-premium),
+      transform 0.8s var(--ease-premium);
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+  .js .reveal.is-visible {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@layer utilities {
+  .tint-coral {
+    --tint: var(--color-coral-50);
+    --tint-ink: var(--color-coral-ink);
+    --tint-base: var(--color-coral);
+  }
+  .tint-sun {
+    --tint: var(--color-sun-50);
+    --tint-ink: var(--color-sun-ink);
+    --tint-base: var(--color-sun);
+  }
+  .tint-leaf {
+    --tint: var(--color-leaf-50);
+    --tint-ink: var(--color-leaf-ink);
+    --tint-base: var(--color-leaf);
+  }
+  .tint-sky {
+    --tint: var(--color-sky-50);
+    --tint-ink: var(--color-sky-ink);
+    --tint-base: var(--color-sky);
+  }
+  .tint-berry {
+    --tint: var(--color-berry-50);
+    --tint-ink: var(--color-berry-ink);
+    --tint-base: var(--color-berry);
+  }
+  .tint-lilac {
+    --tint: var(--color-lilac-50);
+    --tint-ink: var(--color-lilac-ink);
+    --tint-base: var(--color-lilac);
+  }
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .js .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes sheet-in-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+@keyframes sheet-in-left {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: none;
+  }
+}
+@keyframes sheet-in-bottom {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ── Bulut dili (logo ile uyum) ── */
+@layer components {
+  /* Yumuşak gökyüzü zemini: hero ve vurgulu bantlar için */
+  .sky-wash {
+    background:
+      radial-gradient(60% 55% at 85% 10%, rgb(30 140 245 / 0.14), transparent 70%),
+      radial-gradient(45% 50% at 5% 90%, rgb(160 224 255 / 0.35), transparent 70%),
+      linear-gradient(180deg, #f4f9ff 0%, var(--color-paper) 100%);
+  }
+}
+
+/* Hero vurgu çizgisi: açılışta soldan sağa "dikilir", ardından dikişler sürekli ve yavaşça akar. */
+.hero-stitch {
+  clip-path: inset(0 100% 0 0);
+  animation: stitch-reveal 1.1s var(--ease-premium) 0.45s forwards;
+}
+.hero-stitch path {
+  animation: stitch-flow 1.8s linear infinite;
+}
+@keyframes stitch-reveal {
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+@keyframes stitch-flow {
+  to {
+    stroke-dashoffset: -23;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-stitch {
+    clip-path: none;
+    animation: none;
+  }
+  .hero-stitch path {
+    animation: none;
+  }
+}
+
+/* Avantaj kartları: kalkma, ikon süzülmesi, ışık geçişi */
+.usp-card {
+  box-shadow: 0 1px 2px rgb(16 40 74 / 0.04), 0 10px 30px -18px rgb(16 40 74 / 0.18);
+  transition:
+    transform 0.5s var(--ease-premium),
+    box-shadow 0.5s var(--ease-premium);
+}
+.usp-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 2px 4px rgb(16 40 74 / 0.05), 0 26px 50px -24px rgb(0 103 209 / 0.35);
+}
+.usp-icon {
+  animation: usp-float 4.2s ease-in-out infinite;
+}
+.usp-sheen {
+  transform: translateX(0) skewX(-12deg);
+  opacity: 0;
+}
+.usp-card:hover .usp-sheen {
+  animation: usp-sheen 0.9s var(--ease-premium);
+}
+@keyframes usp-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+@keyframes usp-sheen {
+  from {
+    opacity: 1;
+    transform: translateX(0) skewX(-12deg);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(520%) skewX(-12deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .usp-icon,
+  .usp-card:hover .usp-sheen {
+    animation: none;
+  }
+  .usp-card:hover {
+    transform: none;
+  }
+}
+
+/* Performans: box-shadow animasyonu her karede yeniden çizim ister → yalnızca transform/opacity (GPU) */
+@keyframes dot-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.55);
+    opacity: 0.5;
+  }
+}
+
+/* Çerçeveli kartlar (Neden Bıcırıklar Kids) */
+.why-card > div:nth-child(3) {
+  transition: transform 0.6s var(--ease-premium);
+}
+.why-frame,
+.why-shade {
+  transition: transform 0.6s var(--ease-premium);
+}
+.why-card:hover > div:nth-child(3) {
+  transform: translateY(-6px);
+}
+.why-card:hover .why-frame {
+  transform: translate(-4px, -4px);
+}
+.why-card:hover .why-shade {
+  transform: translate(18px, 18px);
+}
+.animate-float-a {
+  animation: float-a 5s ease-in-out infinite;
+}
+.animate-float-b {
+  animation: float-a 5s ease-in-out -2.5s infinite reverse;
+}
+@keyframes float-a {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(-3deg);
+  }
+}
+/* Ürün görseli "stüdyo" zemini: beyaz fonlu fotoğraflar multiply ile zemine karışır, ürün yüzüyormuş gibi
+   görünür (görseller scripts/lib/product-shot.ts ile kırpılıp ortalanır). Renkli fonlu görseller etkilenmez. */
+.shot {
+  background: radial-gradient(120% 95% at 50% 38%, #ffffff 0%, #f4f8fc 55%, #e9f1f9 100%);
+}
+.shot img {
+  mix-blend-mode: multiply;
+}
+/* Kategori karosunda: zemini karonun renk tonu verir */
+.shot-tint img {
+  mix-blend-mode: multiply;
+}
+/* Hero gökyüzü: bulutlar soldan sağa akar (vw: hero tam genişlikte) */
+.sky-drift {
+  animation: sky-drift linear infinite;
+  will-change: transform;
+}
+@keyframes sky-drift {
+  from {
+    transform: translate3d(-40vw, 0, 0);
+  }
+  to {
+    transform: translate3d(110vw, 0, 0);
+  }
+}
+/* Footer: bulutlar alttan yukarı süzülür, uçlarda yumuşakça belirip kaybolur */
+.rise-cloud {
+  animation: rise-cloud linear infinite;
+  will-change: transform, opacity;
+}
+@keyframes rise-cloud {
+  0% {
+    transform: translate3d(0, 100%, 0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(0, -25%, 0);
+    opacity: 0;
+  }
+}
+.rise-sway {
+  animation: rise-sway 7s ease-in-out infinite alternate;
+}
+@keyframes rise-sway {
+  from {
+    transform: translateX(-14px);
+  }
+  to {
+    transform: translateX(14px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sky-drift,
+  .rise-cloud,
+  .rise-sway {
+    animation: none;
+  }
+  .rise-cloud {
+    display: none;
+  }
+}
+/* Yapım adımları (HowToSteps): JS varken adım açılana kadar gizli; açılınca harf harf netleşir */
+.js .howto-step:not(.is-on) .rv-ch,
+.js .howto-step:not(.is-on) .howto-text {
+  opacity: 0;
+}
+.js .howto-step .howto-text {
+  transition:
+    opacity 0.6s var(--ease-soft) 0.35s,
+    transform 0.6s var(--ease-soft) 0.35s;
+}
+.js .howto-step:not(.is-on) .howto-text {
+  transform: translateY(6px);
+}
+.howto-step.is-on .rv-ch {
+  display: inline-block;
+  animation: faq-blur-in 0.34s var(--ease-soft) both;
+  animation-delay: calc(var(--i) * 14ms);
+}
+/* Video çerçevesi: hafif eğik kart, hover'da düzleşir */
+.howto-frame {
+  transition: transform 0.8s var(--ease-premium);
+}
+@media (min-width: 1024px) {
+  .howto-frame {
+    transform: rotate(-1.6deg);
+  }
+  .howto-media:hover .howto-frame {
+    transform: rotate(0deg) translateY(-4px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .howto-step.is-on .rv-ch {
+    animation: none;
+  }
+  .howto-frame,
+  .howto-media:hover .howto-frame {
+    transform: none;
+  }
+}
+/* Editoryal madde ikonları: hover'da kalkar ve hafif döner */
+.pillar-icon {
+  transition: transform 0.5s var(--ease-premium);
+}
+.group:hover > h3 > .pillar-icon {
+  transform: translateY(-3px) rotate(-6deg);
+}
+/* Bulut süzülmesi (bülten bandı): ikisi yerinde yavaşça salınır, küçüğü bant boyunca geçer */
+.cloud-drift-a {
+  animation: cloud-drift 14s ease-in-out infinite;
+}
+.cloud-drift-b {
+  animation: cloud-drift 18s ease-in-out -6s infinite reverse;
+}
+.cloud-cross {
+  animation: cloud-cross 38s linear infinite;
+}
+@keyframes cloud-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  33% {
+    transform: translate3d(-28px, 6px, 0);
+  }
+  66% {
+    transform: translate3d(18px, -8px, 0);
+  }
+}
+@keyframes cloud-cross {
+  0% {
+    transform: translate3d(-140%, 0, 0);
+  }
+  50% {
+    transform: translate3d(calc(50cqw + 50%), -10px, 0);
+  }
+  100% {
+    transform: translate3d(calc(100cqw + 140%), 0, 0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-float-a,
+  .animate-float-b,
+  .cloud-drift-a,
+  .cloud-drift-b,
+  .cloud-cross {
+    animation: none;
+  }
+  .group:hover > h3 > .pillar-icon {
+    transform: none;
+  }
+  .why-card:hover > div,
+  .why-card:hover .why-frame,
+  .why-card:hover .why-shade {
+    transform: none;
+  }
+}
+
+/* Text-reveal FAQ */
+.faq-item {
+  @apply rounded-lg bg-white ring-1 ring-line;
+  transition:
+    box-shadow 0.4s var(--ease-premium),
+    background-color 0.4s;
+}
+.faq-item:hover {
+  box-shadow: 0 16px 36px -26px rgb(16 40 74 / 0.35);
+}
+.faq-item[open] {
+  @apply ring-brand/25;
+  background: linear-gradient(180deg, var(--color-brand-50) 0%, #fff 70%);
+  box-shadow: 0 20px 44px -28px rgb(0 103 209 / 0.4);
+}
+/* Yumuşak yükseklik geçişi (destekleyen tarayıcılarda) */
+:root {
+  interpolate-size: allow-keywords;
+}
+.faq-item::details-content {
+  block-size: 0;
+  overflow: hidden;
+  transition:
+    block-size 0.5s var(--ease-premium),
+    content-visibility 0.5s allow-discrete;
+}
+.faq-item[open]::details-content {
+  block-size: auto;
+}
+.faq-item[open] .faq-ch {
+  display: inline-block;
+  animation: faq-blur-in 0.38s var(--ease-soft) both;
+  animation-delay: calc(var(--i) * 32ms); /* kelime başına */
+}
+.faq-item[open] .faq-fade {
+  animation: faq-blur-in 0.6s var(--ease-soft) both;
+}
+@keyframes faq-blur-in {
+  from {
+    opacity: 0;
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .faq-item[open] .faq-ch,
+  .faq-item[open] .faq-fade {
+    animation: none;
+  }
+}
+
+/* ═══════════════════ Yönetim paneli — açık glass tema ═══════════════════
+   Kök: app/admin/layout.tsx (.admin-glass + GlassBackdrop). Admin sayfaları ortak sınıfları
+   (bg-white, border-neutral-*) kullanır; aşağıdaki kurallar bunları yalnızca admin içinde buzlu cama çevirir.
+   Mağaza sitesini etkilemez. */
+.admin-glass {
+  --glass-bg: rgb(255 255 255 / 0.56);
+  --glass-bg-strong: rgb(255 255 255 / 0.74);
+  --glass-border: rgb(255 255 255 / 0.85);
+  --glass-line: rgb(16 40 74 / 0.08);
+  --glass-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9), 0 18px 48px -28px rgb(16 40 74 / 0.32), 0 2px 6px -2px rgb(16 40 74 / 0.06);
+  --glass-blur: blur(22px) saturate(160%);
+}
+.admin-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  background: linear-gradient(160deg, #e6f2ff 0%, #f4f9ff 42%, #fbf8f3 100%);
+}
+.admin-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(70px);
+  animation: admin-blob 26s ease-in-out infinite alternate;
+}
+.admin-blob--a {
+  top: -14%;
+  left: -8%;
+  width: 46vw;
+  height: 46vw;
+  background: rgb(30 140 245 / 0.26);
+}
+.admin-blob--b {
+  top: 28%;
+  right: -12%;
+  width: 38vw;
+  height: 38vw;
+  background: rgb(246 183 60 / 0.22);
+  animation-delay: -9s;
+}
+.admin-blob--c {
+  bottom: -18%;
+  left: 22%;
+  width: 40vw;
+  height: 40vw;
+  background: rgb(226 103 155 / 0.16);
+  animation-delay: -17s;
+}
+@keyframes admin-blob {
+  to {
+    transform: translate3d(4vw, 3vh, 0) scale(1.08);
+  }
+}
+/* Cam yüzey (kenar menü, giriş kartı, kartlar) */
+.glass-panel {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+/* İçerik alanı: mevcut sayfa sınıflarını cama çevir */
+.admin-glass main .border-neutral-200,
+.admin-glass main .border-neutral-300 {
+  border-color: var(--glass-line);
+}
+.admin-glass main .divide-neutral-100 > :not(:last-child) {
+  border-color: var(--glass-line);
+}
+.admin-glass main .bg-neutral-50 {
+  background-color: rgb(255 255 255 / 0.42);
+}
+.admin-glass main .bg-neutral-100 {
+  background-color: rgb(16 40 74 / 0.05);
+}
+.admin-glass main .bg-white:not(input, select, textarea, option, button, .btn) {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border-color: var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+.admin-glass main :is(.rounded-lg, .rounded-xl).bg-white {
+  border-radius: 1.25rem;
+}
+/* Cam içindeki iç içe beyaz yüzeyler ikinci kez bulanıklaşmasın */
+.admin-glass main .bg-white .bg-white:not(input, select, textarea, option, button) {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background: rgb(255 255 255 / 0.6);
+  box-shadow: none;
+}
+.admin-glass main :is(input, select, textarea):not([type="checkbox"], [type="radio"], [type="file"]) {
+  background-color: rgb(255 255 255 / 0.78);
+  border-color: rgb(16 40 74 / 0.12);
+  border-radius: 0.75rem;
+}
+.admin-glass main :is(input, select, textarea):focus {
+  border-color: var(--color-brand);
+  box-shadow: 0 0 0 4px rgb(30 140 245 / 0.14);
+}
+.admin-glass main a.hover\:border-ink:hover,
+.admin-glass main .hover\:border-ink:hover {
+  border-color: rgb(30 140 245 / 0.45);
+}
+.admin-glass main thead {
+  background: rgb(255 255 255 / 0.35);
+}
+.admin-glass main tbody tr:hover {
+  background: rgb(255 255 255 / 0.45);
+}
+.admin-glass main .bg-ink {
+  background: linear-gradient(135deg, #10284a, #1d4f8f);
+  box-shadow: 0 10px 24px -12px rgb(16 40 74 / 0.6);
+}
+@media (prefers-reduced-motion: reduce) {
+  .admin-blob {
+    animation: none;
+  }
+}
+
+/* Ürün kartı hover görseli: ikinci görsel yüklenince ana görselle yer değiştirir (CardHoverImage) */
+article[data-hover-ready]:hover .card-main-img {
+  opacity: 0;
+}
+article[data-hover-ready]:hover .card-hover-img {
+  opacity: 1;
+}
