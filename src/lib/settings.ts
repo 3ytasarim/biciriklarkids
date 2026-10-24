@@ -50,6 +50,21 @@ export const settingsSchema = z.object({
       items: z.array(z.object({ text: z.string().max(140), href: z.string().max(300).nullable().default(null) })).max(6).default([]),
     })
     .default({ enabled: true, items: [] }),
+  /** Kampanya popup'ı. Tarihler İstanbul saatiyle "YYYY-MM-DDTHH:mm"; boşsa o yönde sınır yok. */
+  popup: z
+    .object({
+      enabled: z.boolean().default(false),
+      imageUrl: nullableStr.default(null),
+      alt: z.string().max(200).catch("").default(""),
+      href: nullableStr.default(null),
+      startsAt: nullableStr.default(null),
+      endsAt: nullableStr.default(null),
+      /** Ziyaretçi açılıştan kaç saniye sonra görür. */
+      delaySeconds: z.number().int().min(0).max(60).catch(4).default(4),
+      /** Kapatan ziyaretçiye kaç gün sonra tekrar gösterilir. */
+      hideDays: z.number().int().min(0).max(365).catch(3).default(3),
+    })
+    .default({ enabled: false, imageUrl: null, alt: "", href: null, startsAt: null, endsAt: null, delaySeconds: 4, hideDays: 3 }),
   shipping: z
     .object({
       /** Sabit kargo ücreti (TL). null → ayarlanmadı: ödeme özetinde "sipariş onayında bildirilir" yazar. */

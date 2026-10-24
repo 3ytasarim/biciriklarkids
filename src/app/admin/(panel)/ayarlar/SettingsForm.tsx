@@ -63,6 +63,26 @@ export function SettingsForm({ s, envOverrides }: { s: SiteSettings; envOverride
       </Section>
 
       <Section
+        title="Kampanya popup'ı"
+        description="Mağazada açılan kampanya penceresi. Tarih girerseniz yalnızca bu aralıkta gösterilir (İstanbul saati); boş bırakılan tarih o yönde sınır koymaz. Sepet ve ödeme sayfalarında açılmaz."
+      >
+        <Checkbox name="popupEnabled" label="Popup'ı göster" defaultChecked={s.popup.enabled} />
+        <div className="grid gap-5 sm:grid-cols-[minmax(0,240px)_1fr]">
+          <ImagePicker name="popupImage" label="Popup görseli" defaultValue={s.popup.imageUrl} aspect="aspect-[4/5]" hint="Dikey 4:5 önerilir (ör. 1080×1350)." />
+          <div className="space-y-5">
+            <TextInput name="popupAlt" label="Görsel açıklaması" defaultValue={s.popup.alt} maxLength={200} hint="Ekran okuyucular için görseldeki metin, ör. “1. yıla özel tüm ürünlerde %50 indirim”." />
+            <TextInput name="popupHref" label="Tıklayınca gidilecek sayfa" placeholder="/urunler" defaultValue={s.popup.href ?? ""} hint="/ ile başlayan site içi yol veya https:// adres. Boşsa görsel tıklanmaz." />
+            <div className="grid gap-5 sm:grid-cols-2">
+              <TextInput name="popupStartsAt" label="Başlangıç" type="datetime-local" defaultValue={s.popup.startsAt ?? ""} />
+              <TextInput name="popupEndsAt" label="Bitiş" type="datetime-local" defaultValue={s.popup.endsAt ?? ""} />
+              <TextInput name="popupDelay" label="Açılma gecikmesi (sn)" inputMode="numeric" defaultValue={String(s.popup.delaySeconds)} />
+              <TextInput name="popupHideDays" label="Kapatınca tekrar gösterme (gün)" inputMode="numeric" defaultValue={String(s.popup.hideDays)} hint="0: her ziyarette yeniden." />
+            </div>
+          </div>
+        </div>
+      </Section>
+
+      <Section
         title="Kargo"
         description="Kargo firması eklerseniz müşteri ödeme adımında firmayı seçer ve o firmanın ücreti uygulanır. Firma yoksa aşağıdaki sabit ücret kullanılır; o da boşsa ödeme özetinde “Kargo: sipariş onayında bildirilir” yazar."
       >

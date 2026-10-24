@@ -29,6 +29,13 @@ const iban = z
   .refine((v) => v === "" || /^TR\d{24}$/.test(v), "IBAN TR ile başlamalı ve 26 karakter olmalı.")
   .transform((v) => (v === "" ? null : v.replace(/(.{4})/g, "$1 ").trim()));
 
+/** datetime-local değeri ("YYYY-MM-DDTHH:mm") veya boş. */
+const localDateTime = z
+  .string()
+  .trim()
+  .refine((v) => v === "" || /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(v), "Geçerli bir tarih ve saat seçin.")
+  .transform((v) => (v === "" ? null : v));
+
 const schema = z.object({
   brandName: required("Marka adı", 120),
   legalName: required("Ticari ünvan", 200),
@@ -50,6 +57,14 @@ const schema = z.object({
   pinterest: url,
   announcementEnabled: bool,
   announcementItems: jsonArray(z.object({ text: z.string().trim().max(140), href: z.string().trim().max(300) }), 6),
+  popupEnabled: bool,
+  popupImage: optionalMedia,
+  popupAlt: optional(200),
+  popupHref: optional(300),
+  popupStartsAt: localDateTime,
+  popupEndsAt: localDateTime,
+  popupDelay: int(0, 60),
+  popupHideDays: int(0, 365),
   flatFee: optionalMoney,
   freeThreshold: optionalMoney,
   dispatchTime: optional(80),
@@ -118,6 +133,9 @@ export async function saveSettingsAction(_p: ActionState, fd: FormData): Promise
   if (!parsed.success) return zodErrors(parsed.error);
   const d = parsed.data;
   if (d.bankEnabled && (!d.iban || !d.accountHolder)) return { status: "error", message: "Havale/EFT'yi açmak için IBAN ve hesap sahibi zorunlu.", errors: { iban: "Zorunlu." } };
+  if (d.popupEnabled && !d.popupImage) return { status: "error", message: "Popup'ı açmak için bir görsel seçin.", errors: { popupImage: "Zorunlu." } };
+  if (d.popupStartsAt && d.popupEndsAt && d.popupStartsAt >= d.popupEndsAt) return { status: "error", message: "Popup bitiş tarihi başlangıçtan sonra olmalı.", errors: { popupEndsAt: "Başlangıçtan sonra olmalı." } };
+  const popupHref = d.popupHref && (d.popupHref.startsWith("/") || /^https:\/\//.test(d.popupHref)) ? d.popupHref : null;
   const carriers = parseCarriers(fd);
   if ("error" in carriers) return { status: "error", message: carriers.error };
   await Promise.all([
@@ -125,6 +143,7 @@ export async function saveSettingsAction(_p: ActionState, fd: FormData): Promise
     saveSetting("contact", { email: d.email, phone: d.phone, whatsapp: d.whatsapp, street: d.street, district: d.district, city: d.city, postalCode: d.postalCode, workingHours: d.workingHours }),
     saveSetting("social", { instagram: d.instagram, facebook: d.facebook, youtube: d.youtube, tiktok: d.tiktok, pinterest: d.pinterest }),
     saveSetting("announcement", { enabled: d.announcementEnabled, items: d.announcementItems.filter((i) => i.text).map((i) => ({ text: i.text, href: i.href.startsWith("/") || /^https?:\/\//.test(i.href) ? i.href : null })) }),
+    saveSetting("popup", { enabled: d.popupEnabled, imageUrl: d.popupImage, alt: d.popupAlt ?? "", href: popupHref, startsAt: d.popupStartsAt, endsAt: d.popupEndsAt, delaySeconds: d.popupDelay, hideDays: d.popupHideDays }),
     saveSetting("shipping", { flatFee: d.flatFee, freeThreshold: d.freeThreshold, dispatchTime: d.dispatchTime, carriers: carriers.carriers }),
     saveSetting("payments", { bankTransfer: { enabled: d.bankEnabled, bankName: d.bankName, accountHolder: d.accountHolder, iban: d.iban, note: d.bankNote } }),
     saveSetting("analytics", { gtmId: d.gtmId, ga4Id: d.ga4Id, googleAdsId: d.googleAdsId, metaPixelId: d.metaPixelId }),
