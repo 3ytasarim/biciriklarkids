@@ -106,8 +106,8 @@ export function Hero({ content }: { content: HeroContent }) {
               </div>
             </div>
 
-            {/* Kutunun içinde kartı */}
-            <div className="absolute right-3 -bottom-6 w-[min(230px,62%)] sm:right-auto sm:-bottom-8 sm:-left-6 sm:w-[250px] lg:-left-10">
+            {/* Kutunun içinde kartı: mobilde görselin altında (ürünü örtmesin), sm+ karonun köşesinde */}
+            <div className="relative mx-auto mt-4 w-full max-w-[340px] sm:absolute sm:-bottom-8 sm:-left-6 sm:mx-0 sm:mt-0 sm:w-[250px] sm:max-w-none lg:-left-10">
               <KitCard items={KIT} note="Tam içerik her ürün sayfasında listelenir." />
             </div>
           </div>

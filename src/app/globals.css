@@ -1397,3 +1397,16 @@ li:nth-child(odd) > .announce-star {
     animation: none;
   }
 }
+
+/* Mobil performans: küçük ekranlarda kaydırınca beliren (reveal) animasyonlar kapalı; içerik doğrudan görünür. */
+@media (max-width: 767px) {
+  .js .reveal,
+  .js .reveal.is-visible {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .js .reveal:not(.is-visible) .steps-path {
+    clip-path: none;
+  }
+}

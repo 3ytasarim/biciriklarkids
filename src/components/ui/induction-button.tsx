@@ -160,6 +160,10 @@ export function InductionButtons() {
     const renderer = createRenderer();
     if (!renderer) return; // WebGL yok → CSS görünümü kalır
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    // Dokunmatik (çoğunlukla mobil) cihazlarda pil/akıcılık için 30 fps ve daha düşük çözünürlük
+    const coarse = window.matchMedia("(pointer: coarse)").matches;
+    const minGap = coarse ? 1000 / 30 : 0;
+    const maxDpr = coarse ? 1.5 : 2;
     const entries = new Map<HTMLElement, Entry>();
     let raf = 0;
     let last = performance.now();
@@ -176,7 +180,7 @@ export function InductionButtons() {
     );
 
     const drawOne = (e: Entry) => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
       if (renderer.draw(e, dpr) && !e.drawn) {
         e.drawn = true;
         e.el.dataset.induction = "on";
@@ -184,6 +188,10 @@ export function InductionButtons() {
     };
 
     const frame = (now: number) => {
+      if (now - last < minGap) {
+        raf = requestAnimationFrame(frame);
+        return;
+      }
       raf = 0;
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
