@@ -67,7 +67,7 @@ export function DesktopNav({ categories }: { categories: NavCategory[] }) {
                   aria-controls={panelId}
                   onClick={() => setOpen((v) => !v)}
                   className={cn(
-                    "inline-flex min-h-11 items-center gap-1 whitespace-nowrap rounded-full px-3 text-[15px] font-bold transition-colors hover:bg-ink/5 xl:px-4",
+                    "inline-flex min-h-11 items-center gap-1 whitespace-nowrap rounded-full px-2 text-[14px] font-bold transition-colors hover:bg-ink/5 xl:px-4 xl:text-[15px]",
                     (open || pathname.startsWith("/kategori")) && "bg-ink/5",
                   )}
                 >
@@ -139,7 +139,7 @@ export function DesktopNav({ categories }: { categories: NavCategory[] }) {
                 <Link
                   href={item.href}
                   aria-current={isActive(item.href) ? "page" : undefined}
-                  className={cn("inline-flex min-h-11 items-center whitespace-nowrap rounded-full px-3 text-[15px] font-bold transition-colors hover:bg-ink/5 xl:px-4", isActive(item.href) && "text-brand-ink")}
+                  className={cn("inline-flex min-h-11 items-center whitespace-nowrap rounded-full px-2 text-[14px] font-bold transition-colors hover:bg-ink/5 xl:px-4 xl:text-[15px]", isActive(item.href) && "text-brand-ink")}
                 >
                   {item.label}
                 </Link>

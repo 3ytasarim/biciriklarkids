@@ -155,10 +155,10 @@ export async function Footer({ settings }: { settings: SiteSettings }) {
         <RainbowArc />
       </div>
       <div className="border-t border-white/10">
-        <div className="shell flex flex-col gap-4 py-6 text-sm text-white/60 lg:flex-row lg:items-center lg:justify-between">
-          <p>© {new Date().getFullYear()} {settings.brand.legalName}. Tüm hakları saklıdır.</p>
-          <nav aria-label="Yasal">
-            <ul className="flex flex-wrap gap-x-5 gap-y-1">
+        <div className="mx-auto grid w-full max-w-[1760px] justify-items-center gap-4 px-4 py-6 text-center text-[13px] text-white/60 sm:px-6 lg:px-10 lg:grid-cols-2 lg:items-center lg:gap-x-8 lg:gap-y-2 lg:text-left 2xl:grid-cols-[1fr_auto_1fr]">
+          <p className="order-2 lg:justify-self-start 2xl:order-none">© {new Date().getFullYear()} {settings.brand.legalName}. Tüm hakları saklıdır.</p>
+          <nav aria-label="Yasal" className="order-1 lg:col-span-2 2xl:order-none 2xl:col-span-1">
+            <ul className="flex flex-wrap justify-center gap-x-4 gap-y-0">
               {legal.map((p) => (
                 <li key={p.slug}>
                   <Link href={`/${p.slug}`} className="inline-flex min-h-9 items-center hover:text-white">
@@ -171,6 +171,13 @@ export async function Footer({ settings }: { settings: SiteSettings }) {
               </li>
             </ul>
           </nav>
+          <a href="https://www.3ytasarim.com" target="_blank" rel="noopener" className="studio-credit order-3 lg:justify-self-end 2xl:order-none">
+            <span className="text-white/55">Design by</span>
+            <span className="studio-credit-name">3Y Tasarım &amp; Yazılım Hizmetleri</span>
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="studio-credit-spark h-3.5 w-3.5" focusable="false">
+              <path fill="currentColor" d="M12 2c.4 4.6 2.4 6.6 7 7-4.6.4-6.6 2.4-7 7-.4-4.6-2.4-6.6-7-7 4.6-.4 6.6-2.4 7-7Z" />
+            </svg>
+          </a>
         </div>
       </div>
       </div>
