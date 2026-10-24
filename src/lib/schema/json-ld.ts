@@ -4,6 +4,7 @@ import type { SiteSettings } from "@/lib/settings";
 import { absoluteUrl, getSiteUrl, SITE_LANG } from "@/lib/seo/site";
 import type { ProductCardData } from "@/lib/catalog/types";
 import { htmlToText } from "@/lib/sanitize";
+import { defaultCarrier, shippingRuleFor } from "@/lib/commerce/carriers";
 
 /**
  * Schema.org JSON-LD üreticileri. İlke: yalnızca sayfada GÖRÜNEN ve GERÇEK veriler işaretlenir.
@@ -127,7 +128,7 @@ export function productSchema(
 ): Json {
   const url = absoluteUrl(`/urun/${p.slug}`);
   const priceValidUntil = new Date(Date.now() + 1000 * 60 * 60 * 24 * 365).toISOString().slice(0, 10);
-  const shipping = s.shipping.flatFee != null ? shippingDetailsSchema(s) : undefined;
+  const shipping = shippingDetailsSchema(s, p.price);
   const gtin = p.barcode?.replace(/\D/g, "");
   return clean({
     "@type": "Product",
@@ -179,11 +180,17 @@ export function productSchema(
   });
 }
 
-export function shippingDetailsSchema(s: SiteSettings): Json | undefined {
-  if (s.shipping.flatFee == null) return undefined;
+/**
+ * Ürünün kargo ücreti: firma tanımlıysa en ucuz aktif firma, yoksa sabit ücret; ürün fiyatı ücretsiz
+ * kargo eşiğini geçiyorsa 0. Ücret hiç girilmemişse (bilinmiyorsa) şemaya yazılmaz.
+ */
+export function shippingDetailsSchema(s: SiteSettings, price?: number): Json | undefined {
+  const rule = shippingRuleFor(s.shipping, defaultCarrier(s.shipping));
+  if (rule.flatFee == null) return undefined;
+  const free = price != null && rule.freeThreshold != null && price >= rule.freeThreshold;
   return {
     "@type": "OfferShippingDetails",
-    shippingRate: { "@type": "MonetaryAmount", value: s.shipping.flatFee.toFixed(2), currency: "TRY" },
+    shippingRate: { "@type": "MonetaryAmount", value: (free ? 0 : rule.flatFee).toFixed(2), currency: "TRY" },
     shippingDestination: { "@type": "DefinedRegion", addressCountry: "TR" },
   };
 }

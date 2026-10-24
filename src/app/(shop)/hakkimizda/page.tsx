@@ -7,7 +7,8 @@ import { getPageBySlug } from "@/lib/content/queries";
 import { getCategoryTree } from "@/lib/catalog/queries";
 import { getSiteSettings } from "@/lib/settings";
 import { buildEntityMetadata } from "@/lib/seo/metadata";
-import { breadcrumbSchema, faqSchema, graph } from "@/lib/schema/json-ld";
+import { breadcrumbSchema, faqSchema, graph, ORG_ID, WEBSITE_ID } from "@/lib/schema/json-ld";
+import { absoluteUrl } from "@/lib/seo/site";
 import { sanitizeRichText } from "@/lib/sanitize";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
@@ -61,7 +62,24 @@ export default async function AboutPage() {
 
   return (
     <article className="about-page overflow-x-clip">
-      <JsonLd data={graph(breadcrumbSchema(crumbs), faq.length ? faqSchema(faq) : null)} />
+      <JsonLd
+        data={graph(
+          {
+            "@type": "AboutPage",
+            "@id": `${absoluteUrl(`/${SLUG}`)}#webpage`,
+            url: absoluteUrl(`/${SLUG}`),
+            name: page.title,
+            description: page.excerpt ?? undefined,
+            inLanguage: "tr-TR",
+            isPartOf: { "@id": WEBSITE_ID() },
+            about: { "@id": ORG_ID() },
+            mainEntity: { "@id": ORG_ID() },
+            dateModified: page.updatedAt.toISOString(),
+          },
+          breadcrumbSchema(crumbs),
+          faq.length ? faqSchema(faq) : null,
+        )}
+      />
 
       {/* ── Hero ── */}
       <header className="relative isolate overflow-hidden bg-[linear-gradient(180deg,var(--color-brand-50),var(--color-paper))] pb-16 sm:pb-24">

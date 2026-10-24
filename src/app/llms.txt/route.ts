@@ -1,6 +1,7 @@
 import { and, asc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { products } from "@/lib/db/schema";
+import { blogPosts, products } from "@/lib/db/schema";
+import { desc } from "drizzle-orm";
 import { getCategoryTree } from "@/lib/catalog/queries";
 import { getSiteSettings } from "@/lib/settings";
 import { BRAND_FAQ } from "@/lib/content/brand-faq";
@@ -13,7 +14,7 @@ export const revalidate = 3600;
  * biçimde anlatan düz metin özet. İçerik sitedeki gerçek veriden üretilir.
  */
 export async function GET() {
-  const [s, tree, prods] = await Promise.all([
+  const [s, tree, prods, posts] = await Promise.all([
     getSiteSettings(),
     getCategoryTree(),
     db
@@ -22,6 +23,12 @@ export async function GET() {
       .where(and(eq(products.status, "active"), eq(products.isDemo, false)))
       .orderBy(asc(products.name))
       .limit(200),
+    db
+      .select({ title: blogPosts.title, slug: blogPosts.slug, excerpt: blogPosts.excerpt })
+      .from(blogPosts)
+      .where(eq(blogPosts.status, "published"))
+      .orderBy(desc(blogPosts.publishedAt))
+      .limit(50),
   ]);
   const lines = [
     `# ${s.brand.name}`,
@@ -38,6 +45,9 @@ export async function GET() {
     "",
     prods.length ? "## Ürünler" : "",
     ...prods.map((p) => `- [${p.name}](${absoluteUrl(`/urun/${p.slug}`)})`),
+    "",
+    posts.length ? "## Blog yazıları" : "",
+    ...posts.map((p) => `- [${p.title}](${absoluteUrl(`/blog/${p.slug}`)})${p.excerpt ? `: ${p.excerpt}` : ""}`),
     "",
     "## Sık sorulan sorular",
     ...BRAND_FAQ.flatMap((f) => [`### ${f.question}`, f.answer, ""]),
