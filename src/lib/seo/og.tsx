@@ -112,18 +112,40 @@ export async function renderOg(opts: { eyebrow?: string | null; title: string; s
   );
 }
 
-/** Marka (ana sayfa / varsayılan) OG görseli: gökyüzü zemin, bulutlar, gerçek logo. */
+let bigLogoPromise: Promise<string | null> | null = null;
+/** Ortalı marka görseli için büyük logo (WhatsApp kare kırpmasında da sığacak genişlikte). */
+function bigLogoDataUri(): Promise<string | null> {
+  bigLogoPromise ??= readFile(path.join(/*turbopackIgnore: true*/ process.cwd(), "public", "brand", "biciriklar-logo.png"))
+    .then(async (buf) => `data:image/png;base64,${(await sharp(buf).resize({ width: 1240 }).png().toBuffer()).toString("base64")}`)
+    .catch(() => null);
+  return bigLogoPromise;
+}
+
+/**
+ * Marka (ana sayfa / varsayılan) OG görseli — WhatsApp vb. paylaşım önizlemesi: bulut mavisi gökyüzü,
+ * kenarlarda bulutlar, tam ortada logo ve altında kısa slogan.
+ */
 export async function renderSiteOg(tagline: string) {
-  const [fonts, logo] = await Promise.all([loadOgFonts(), logoDataUri()]);
+  const [fonts, logo] = await Promise.all([loadOgFonts(), bigLogoDataUri()]);
+  const W = 620;
   return new ImageResponse(
     (
-      <div style={{ width: OG_W, height: OG_H, display: "flex", flexDirection: "column", justifyContent: "center", padding: 80, fontFamily: "Nunito", position: "relative", background: "linear-gradient(160deg, #d4eaff 0%, #eaf5ff 45%, #fbfdff 100%)" }}>
-        <Cloud w={360} x={820} y={40} />
-        <Cloud w={260} x={940} y={420} opacity={0.9} />
-        <Cloud w={200} x={-60} y={500} opacity={0.85} />
-        <Brand logo={logo} width={520} />
-        <span style={{ fontFamily: "NunitoDisplay", fontSize: 64, lineHeight: 1.05, color: C.ink, marginTop: 36, maxWidth: 760 }}>{tagline}</span>
-        <span style={{ fontWeight: 700, fontSize: 28, color: C.soft, marginTop: 18 }}>Çocuklar için keçe dikiş kitleri ve eğitici aktivite setleri</span>
+      <div style={{ width: OG_W, height: OG_H, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontFamily: "Nunito", position: "relative", background: "linear-gradient(180deg, #7cc4ff 0%, #a9d8ff 45%, #d9eeff 100%)" }}>
+        <Cloud w={300} x={-70} y={30} opacity={0.95} />
+        <Cloud w={220} x={210} y={-30} opacity={0.8} />
+        <Cloud w={340} x={900} y={10} opacity={0.95} />
+        <Cloud w={200} x={1040} y={250} opacity={0.75} />
+        <Cloud w={380} x={-90} y={440} />
+        <Cloud w={300} x={300} y={500} opacity={0.9} />
+        <Cloud w={260} x={680} y={510} opacity={0.85} />
+        <Cloud w={360} x={930} y={440} />
+        {logo ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={logo} width={W} height={Math.round((W * 379) / 1200)} alt="" style={{ marginTop: -30 }} />
+        ) : (
+          <span style={{ fontFamily: "NunitoDisplay", fontSize: 88, color: C.brandInk }}>Bıcırıklar Kids</span>
+        )}
+        <span style={{ display: "flex", marginTop: 26, padding: "10px 28px", borderRadius: 999, background: "rgba(255,255,255,0.85)", fontFamily: "NunitoDisplay", fontSize: 34, color: C.brandInk }}>{tagline}</span>
       </div>
     ),
     { width: OG_W, height: OG_H, fonts, headers: { "Cache-Control": "public, max-age=3600, s-maxage=86400" } },
