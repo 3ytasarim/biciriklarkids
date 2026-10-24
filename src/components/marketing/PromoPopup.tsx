@@ -58,15 +58,19 @@ export function PromoPopup({ data }: { data: PromoPopupData }) {
       if (saved?.k === key && saved.until > now) return;
     } catch {}
 
-    setArmed(true);
+    // Görsel önceden yüklensin diye dialog hemen (kapalı) render edilir, süre dolunca açılır.
+    const arm = window.setTimeout(() => setArmed(true), 0);
     const t = window.setTimeout(() => {
       const d = ref.current;
       if (!d || d.open || document.querySelector("dialog[open]")) return;
       d.showModal();
       d.querySelector<HTMLButtonElement>("[data-close]")?.focus();
       write(window.sessionStorage, STORE_KEY, key);
-    }, data.delaySeconds * 1000);
-    return () => window.clearTimeout(t);
+    }, Math.max(data.delaySeconds * 1000, 100));
+    return () => {
+      window.clearTimeout(arm);
+      window.clearTimeout(t);
+    };
   }, [pathname, data, key]);
 
   const close = () => {
