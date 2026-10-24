@@ -128,7 +128,7 @@ export function ProductForm({ action, product: p, images, variants, categories, 
           <p className="text-xs text-neutral-500">“İndirim” ve “Son Ürünler” rozetleri fiyat ve stoktan otomatik hesaplanır.</p>
         </Section>
         <Section title="Kodlar ve Merchant Center">
-          <TextInput name="sku" label="SKU (stok kodu)" defaultValue={p?.sku ?? ""} />
+          <TextInput name="sku" label="SKU (stok kodu)" defaultValue={p?.sku ?? ""} placeholder="Boş bırakılırsa otomatik: BK-CNT-001" hint="Boş bırakırsanız kategoriye göre otomatik atanır." />
           <TextInput name="barcode" label="Barkod / GTIN (EAN-13)" inputMode="numeric" defaultValue={p?.barcode ?? ""} />
           <TextInput name="mpn" label="MPN" defaultValue={p?.mpn ?? ""} hint="Boşsa SKU kullanılır." />
           <TextInput name="googleProductCategory" label="Google ürün kategorisi" defaultValue={p?.googleProductCategory ?? ""} hint="Boşsa Ayarlar'daki varsayılan kullanılır." />

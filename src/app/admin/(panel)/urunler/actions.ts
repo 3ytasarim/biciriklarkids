@@ -30,6 +30,7 @@ import {
 import { revalidateSite } from "@/lib/admin/revalidate";
 import { recordSlugChange } from "@/lib/redirects";
 import { buildSearchText } from "@/lib/catalog/search-text";
+import { nextSku } from "@/lib/catalog/sku";
 import { getMediaDimensions } from "@/lib/upload";
 
 const localPath = z.string().trim().max(500).refine((v) => v.startsWith("/") && !v.startsWith("//"), "Geçersiz dosya yolu.");
@@ -91,8 +92,12 @@ export async function saveProductAction(id: string | null, _prev: ActionState, f
   const existing = id ? (await db.select({ slug: products.slug, status: products.status, publishedAt: products.publishedAt }).from(products).where(eq(products.id, id)).limit(1))[0] : null;
   if (id && !existing) return fail("Ürün bulunamadı.");
 
+  // SKU boşsa kategori grubuna göre otomatik kod (BK-CNT-001 …)
+  const sku = d.sku ?? (await nextSku(db, d.categoryId));
+
   const values = {
     ...d,
+    sku,
     faq,
     searchText: buildSearchText(d, cat?.name),
     publishedAt: d.status === "active" ? (existing?.publishedAt ?? new Date()) : (existing?.publishedAt ?? null),
