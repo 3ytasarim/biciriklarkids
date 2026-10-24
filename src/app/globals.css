@@ -994,3 +994,108 @@ article[data-hover-ready]:hover .card-hover-img {
 .js .reveal:not(.is-visible) .footer-rainbow .rb-band {
   animation-play-state: paused;
 }
+
+/* İndüksiyon efekti (dolu butonlar): hover/odakta kenarda dönen enerji halkası + renkli ışıma,
+   tıklamada dışa yayılan darbe halkası. Yalnız CSS; @property yoksa halka sabit görünür. */
+@property --ib-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+@layer components {
+  .btn-primary,
+  .btn-dark {
+    position: relative;
+  }
+  .btn-primary::before,
+  .btn-dark::before,
+  .btn-primary::after,
+  .btn-dark::after {
+    content: "";
+    position: absolute;
+    pointer-events: none;
+    border-radius: inherit;
+  }
+  .btn-primary::before,
+  .btn-dark::before {
+    inset: -2px;
+    padding: 2px;
+    background: conic-gradient(
+      from var(--ib-angle),
+      transparent 0deg,
+      #5ab8ff 50deg,
+      #ffffff 80deg,
+      #f6b73c 110deg,
+      transparent 160deg,
+      transparent 180deg,
+      #9f8cff 230deg,
+      #ffffff 260deg,
+      #1e8cf5 290deg,
+      transparent 340deg
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.35s var(--ease-premium);
+  }
+  .btn-primary:hover,
+  .btn-primary:focus-visible {
+    box-shadow:
+      0 0 0 1px rgb(90 184 255 / 0.35),
+      0 10px 34px -8px rgb(30 140 245 / 0.75),
+      0 0 26px -6px rgb(246 183 60 / 0.45);
+  }
+  .btn-dark:hover,
+  .btn-dark:focus-visible {
+    box-shadow:
+      0 0 0 1px rgb(159 140 255 / 0.3),
+      0 10px 30px -8px rgb(16 40 74 / 0.55),
+      0 0 24px -6px rgb(90 184 255 / 0.5);
+  }
+  .btn-primary:hover::before,
+  .btn-dark:hover::before,
+  .btn-primary:focus-visible::before,
+  .btn-dark:focus-visible::before {
+    opacity: 1;
+    animation: ib-spin 2.2s linear infinite;
+  }
+  /* Tıklama darbesi: kenardan dışa yayılan halka */
+  .btn-primary::after,
+  .btn-dark::after {
+    inset: 0;
+    border: 2px solid #5ab8ff;
+    opacity: 0;
+  }
+  .btn-primary:active::after,
+  .btn-dark:active::after {
+    animation: ib-pulse 0.55s var(--ease-premium);
+  }
+}
+@keyframes ib-spin {
+  to {
+    --ib-angle: 360deg;
+  }
+}
+@keyframes ib-pulse {
+  from {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.18, 1.45);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn-primary:hover::before,
+  .btn-dark:hover::before,
+  .btn-primary:focus-visible::before,
+  .btn-dark:focus-visible::before,
+  .btn-primary:active::after,
+  .btn-dark:active::after {
+    animation: none;
+  }
+}
