@@ -6,7 +6,7 @@ import type { SiteSettings } from "@/lib/settings";
 import { getFooterPages } from "@/lib/content/queries";
 import { getCategoryTree } from "@/lib/catalog/queries";
 import { Logo } from "@/components/ui/Logo";
-import { CloudEdge, RisingClouds } from "@/components/ui/Clouds";
+import { CloudEdge, FooterRainbow, RisingClouds } from "@/components/ui/Clouds";
 import { NewsletterForm } from "@/components/marketing/NewsletterForm";
 import { CookieSettingsLink } from "@/components/marketing/CookieSettingsLink";
 
@@ -150,7 +150,11 @@ export async function Footer({ settings }: { settings: SiteSettings }) {
         </div>
       </div>
 
-      <div className="border-t border-white/10">
+      <div className="reveal relative h-28 sm:h-36 lg:h-40">
+        <FooterRainbow className="bottom-0 left-1/2 w-72 -translate-x-1/2 sm:w-[26rem] lg:w-[30rem]" />
+      </div>
+      <div aria-hidden="true" className="rainbow-rule" />
+      <div>
         <div className="shell flex flex-col gap-4 py-6 text-sm text-white/60 lg:flex-row lg:items-center lg:justify-between">
           <p>© {new Date().getFullYear()} {settings.brand.legalName}. Tüm hakları saklıdır.</p>
           <nav aria-label="Yasal">

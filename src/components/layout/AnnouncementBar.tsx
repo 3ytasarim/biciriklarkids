@@ -21,14 +21,14 @@ export function AnnouncementBar({ announcement }: { announcement: SiteSettings["
           ) : (
             <span className="px-6">{it.text}</span>
           )}
-          <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-sun" />
+          <span aria-hidden="true" className="rainbow-dot h-1.5 w-1.5 rounded-full" />
         </li>
       ))}
     </ul>
   );
 
   return (
-    <aside aria-label="Duyurular" className="relative z-50 bg-ink text-[13px] font-bold text-white">
+    <aside aria-label="Duyurular" className="rainbow-bar relative z-50 text-[13px] font-bold text-white">
       {items.length === 1 ? (
         <p className="shell flex min-h-9 items-center justify-center py-2 text-center">
           {items[0]!.href ? (

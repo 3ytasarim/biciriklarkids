@@ -880,3 +880,117 @@ article[data-hover-ready]:hover .card-main-img {
 article[data-hover-ready]:hover .card-hover-img {
   opacity: 1;
 }
+
+/* Duyuru çubuğu: yavaş akan gökkuşağı zemin. Tonlar beyaz metinle AA kontrastı korur;
+   akış transform ile yapılır (repaint yok), reduced-motion'da sabit kalır. */
+.rainbow-bar {
+  isolation: isolate;
+  overflow: hidden;
+  background-color: var(--color-brand-deep);
+}
+.rainbow-bar::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: -1;
+  width: 200%;
+  background: linear-gradient(
+    90deg,
+    #c23a28,
+    #a85d00,
+    #23704b,
+    #1f6aa3,
+    #5f4fb5,
+    #b03a6c,
+    #c23a28,
+    #a85d00,
+    #23704b,
+    #1f6aa3,
+    #5f4fb5,
+    #b03a6c,
+    #c23a28
+  );
+  animation: rainbow-flow 24s linear infinite;
+  will-change: transform;
+}
+.rainbow-bar .rainbow-dot {
+  background: #fff;
+  opacity: 0.85;
+}
+@keyframes rainbow-flow {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rainbow-bar::before {
+    animation: none;
+  }
+}
+
+/* Footer gökkuşağı: bantlar içten dışa sırayla çizilir, sonra parıltı dalgası döngüde gezinir. */
+.footer-rainbow .rb-band {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 0;
+  opacity: 0.55;
+  animation:
+    rb-draw 2.4s cubic-bezier(0.16, 1, 0.3, 1) calc(var(--rb-i) * 0.14s) both,
+    rb-glow 6s ease-in-out calc(2.6s + var(--rb-i) * 0.35s) infinite;
+}
+@keyframes rb-draw {
+  from {
+    stroke-dashoffset: 100;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes rb-glow {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 0.95;
+  }
+}
+.rb-cloud {
+  animation: rb-bob 7s ease-in-out infinite alternate;
+}
+.rb-cloud-b {
+  animation-delay: -3.5s;
+}
+@keyframes rb-bob {
+  from {
+    transform: translate(-6px, 3px);
+  }
+  to {
+    transform: translate(6px, -4px);
+  }
+}
+/* Alt bilgi ayırıcısı: akan gökkuşağı çizgisi */
+.rainbow-rule {
+  height: 3px;
+  background: linear-gradient(90deg, #ff6b5b, #ffb347, #ffe066, #6fdc8c, #5ab8ff, #9f8cff, #ff6b5b) 0 0 / 200% 100%;
+  animation: rainbow-rule 10s linear infinite;
+  opacity: 0.85;
+}
+@keyframes rainbow-rule {
+  to {
+    background-position: -200% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .footer-rainbow .rb-band,
+  .rb-cloud,
+  .rainbow-rule {
+    animation: none;
+  }
+}
+/* Footer görünür olana kadar çizim bekler (RevealObserver .is-visible ekler) */
+.js .reveal:not(.is-visible) .footer-rainbow .rb-band {
+  animation-play-state: paused;
+}
