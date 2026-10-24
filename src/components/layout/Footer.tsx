@@ -6,7 +6,8 @@ import type { SiteSettings } from "@/lib/settings";
 import { getFooterPages } from "@/lib/content/queries";
 import { getCategoryTree } from "@/lib/catalog/queries";
 import { Logo } from "@/components/ui/Logo";
-import { CloudEdge, FooterRainbow, RisingClouds } from "@/components/ui/Clouds";
+import { CloudEdge, RisingClouds } from "@/components/ui/Clouds";
+import { RainbowArc } from "@/components/ui/RainbowArc";
 import { NewsletterForm } from "@/components/marketing/NewsletterForm";
 import { CookieSettingsLink } from "@/components/marketing/CookieSettingsLink";
 
@@ -88,7 +89,7 @@ export async function Footer({ settings }: { settings: SiteSettings }) {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 lg:col-span-8 lg:pl-8 xl:pl-16">
+        <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-4 lg:col-span-8 lg:pl-8 xl:pl-16">
           {columns.map((col) => (
             <nav key={col.title} aria-label={col.title}>
               <h2 className="font-sans text-xs font-extrabold tracking-[0.18em] text-sun uppercase">{col.title}</h2>
@@ -104,9 +105,9 @@ export async function Footer({ settings }: { settings: SiteSettings }) {
             </nav>
           ))}
 
-          <div className="col-span-2 sm:col-span-3">
+          <div className="col-span-2 sm:col-span-1">
             <h2 className="font-sans text-xs font-extrabold tracking-[0.18em] text-sun uppercase">İletişim</h2>
-            <ul className="mt-4 grid gap-3 text-[15px] text-white/80 sm:grid-cols-3">
+            <ul className="mt-4 grid gap-3 text-[15px] text-white/80">
               {contact.phone ? (
                 <li>
                   <a href={`tel:${contact.phone.replace(/[^\d+]/g, "")}`} className="flex items-start gap-2.5 hover:text-white">
@@ -150,11 +151,10 @@ export async function Footer({ settings }: { settings: SiteSettings }) {
         </div>
       </div>
 
-      <div className="reveal relative h-28 sm:h-36 lg:h-40">
-        <FooterRainbow className="bottom-0 left-1/2 w-72 -translate-x-1/2 sm:w-[26rem] lg:w-[30rem]" />
+      <div className="pointer-events-none relative -mt-10 h-36 opacity-60 sm:-mt-16 sm:h-52 lg:-mt-24 lg:h-64">
+        <RainbowArc />
       </div>
-      <div aria-hidden="true" className="rainbow-rule" />
-      <div>
+      <div className="border-t border-white/10">
         <div className="shell flex flex-col gap-4 py-6 text-sm text-white/60 lg:flex-row lg:items-center lg:justify-between">
           <p>© {new Date().getFullYear()} {settings.brand.legalName}. Tüm hakları saklıdır.</p>
           <nav aria-label="Yasal">

@@ -1,5 +1,4 @@
 import { cn } from "@/lib/utils";
-import type { CSSProperties } from "react";
 
 /**
  * Bulut dili — logodaki puf bulutlarla bağ kuran, kasıtlı olarak SADE dekoratif öğeler.
@@ -130,43 +129,5 @@ export function CloudEdge({ className, fill = "var(--color-ink)" }: { className?
         <rect x="0" y="60" width="1440" height="20" />
       </g>
     </svg>
-  );
-}
-
-const RAINBOW = ["#ff6b5b", "#ffb347", "#ffe066", "#6fdc8c", "#5ab8ff", "#9f8cff"];
-
-/**
- * Footer alt köşesi: iki bulutun arasından yükselen gökkuşağı. Bantlar sırayla çizilir,
- * ardından sakin bir parıltı dalgası bantlar üzerinde gezinir; bulutlar hafifçe salınır.
- * Tamamen dekoratif; reduced-motion'da sabit, tam çizili hâlde görünür.
- */
-export function FooterRainbow({ className }: { className?: string }) {
-  return (
-    <div aria-hidden="true" className={cn("pointer-events-none absolute", className)}>
-      <svg viewBox="0 0 420 220" className="footer-rainbow block h-auto w-full" focusable="false">
-        {RAINBOW.map((c, i) => {
-          const r = 190 - i * 14;
-          return (
-            <path
-              key={c}
-              d={`M ${210 - r} 214 A ${r} ${r} 0 0 1 ${210 + r} 214`}
-              fill="none"
-              stroke={c}
-              strokeWidth="13"
-              strokeLinecap="round"
-              pathLength={100}
-              className="rb-band"
-              style={{ "--rb-i": i } as CSSProperties}
-            />
-          );
-        })}
-      </svg>
-      <div className="rb-cloud absolute bottom-[-6%] left-[-8%] w-[34%]">
-        <PuffCloud id="rb-cloud-l" className="h-auto w-full" />
-      </div>
-      <div className="rb-cloud rb-cloud-b absolute right-[-8%] bottom-[-6%] w-[34%]">
-        <PuffCloud id="rb-cloud-r" className="h-auto w-full" />
-      </div>
-    </div>
   );
 }
