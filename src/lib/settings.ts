@@ -104,6 +104,21 @@ export const settingsSchema = z.object({
         .default({ enabled: false, bankName: null, accountHolder: null, iban: null, note: null }),
     })
     .default({ bankTransfer: { enabled: false, bankName: null, accountHolder: null, iban: null, note: null } }),
+  /**
+   * Kartla ödeme (iyzico) — admin'den girilir. Sunucuda IYZICO_* ENV tanımlıysa ENV önceliklidir.
+   * Gizli anahtar şifreli saklanır (lib/crypto/secret-box); istemciye hiçbir zaman gönderilmez.
+   */
+  iyzico: z
+    .object({
+      enabled: z.boolean().default(false),
+      mode: z.enum(["live", "sandbox"]).catch("live").default("live"),
+      apiKey: nullableStr.default(null),
+      secretKeyEnc: z.string().max(2000).nullable().catch(null).default(null),
+      /** Ekranda kaydın varlığını göstermek için gizli anahtarın son 4 karakteri */
+      secretLast4: z.string().max(4).nullable().catch(null).default(null),
+      installments: z.string().max(40).catch("1,2,3,6,9").default("1,2,3,6,9"),
+    })
+    .default({ enabled: false, mode: "live", apiKey: null, secretKeyEnc: null, secretLast4: null, installments: "1,2,3,6,9" }),
   analytics: z
     .object({
       gtmId: nullableStr.default(null),

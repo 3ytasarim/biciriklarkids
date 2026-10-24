@@ -4,7 +4,8 @@ import { z } from "zod";
 import { requireAdmin } from "@/lib/auth/admin";
 import { bool, faqItems, formObject, int, jsonArray, optional, optionalMedia, optionalMoney, required, zodErrors, type ActionState } from "@/lib/admin/form";
 import { revalidateSite } from "@/lib/admin/revalidate";
-import { saveSetting } from "@/lib/settings";
+import { getSiteSettings, saveSetting } from "@/lib/settings";
+import { encryptSecret } from "@/lib/crypto/secret-box";
 import { CARRIER_BRAND_KEYS, type ShippingCarrier } from "@/lib/commerce/carriers";
 
 const url = z
@@ -68,6 +69,19 @@ const schema = z.object({
   flatFee: optionalMoney,
   freeThreshold: optionalMoney,
   dispatchTime: optional(80),
+  iyzicoEnabled: bool,
+  iyzicoMode: z.enum(["live", "sandbox"]).catch("live"),
+  iyzicoInstallments: optional(40),
+  iyzicoApiKey: z
+    .string()
+    .trim()
+    .max(120)
+    .refine((v) => v === "" || /^[A-Za-z0-9._-]{8,120}$/.test(v), "API anahtarında boşluk veya geçersiz karakter var; iyzico panelinden kopyalayıp yapıştırın."),
+  iyzicoSecretKey: z
+    .string()
+    .trim()
+    .max(200)
+    .refine((v) => v === "" || /^[A-Za-z0-9._-]{8,200}$/.test(v), "Gizli anahtarda boşluk veya geçersiz karakter var; iyzico panelinden kopyalayıp yapıştırın."),
   bankEnabled: bool,
   bankName: optional(120),
   accountHolder: optional(160),
@@ -136,6 +150,21 @@ export async function saveSettingsAction(_p: ActionState, fd: FormData): Promise
   if (d.popupEnabled && !d.popupImage) return { status: "error", message: "Popup'ı açmak için bir görsel seçin.", errors: { popupImage: "Zorunlu." } };
   if (d.popupStartsAt && d.popupEndsAt && d.popupStartsAt >= d.popupEndsAt) return { status: "error", message: "Popup bitiş tarihi başlangıçtan sonra olmalı.", errors: { popupEndsAt: "Başlangıçtan sonra olmalı." } };
   const popupHref = d.popupHref && (d.popupHref.startsWith("/") || /^https:\/\//.test(d.popupHref)) ? d.popupHref : null;
+  // Kartla ödeme (iyzico): gizli anahtar yazıldıysa şifrelenir, boşsa kayıtlı olan korunur.
+  const prevIyzico = (await getSiteSettings()).iyzico;
+  const newSecret = d.iyzicoSecretKey;
+  const secretKeyEnc = newSecret ? encryptSecret(newSecret) : prevIyzico.secretKeyEnc;
+  const secretLast4 = newSecret ? newSecret.slice(-4) : prevIyzico.secretLast4;
+  const apiKey = d.iyzicoApiKey || null;
+  if (d.iyzicoEnabled && (!apiKey || !secretKeyEnc)) return { status: "error", message: "Kartla ödemeyi açmak için API anahtarı ve gizli anahtar gerekli.", errors: apiKey ? { iyzicoSecretKey: "Zorunlu." } : { iyzicoApiKey: "Zorunlu." } };
+  const sandboxKey = [apiKey, newSecret].some((k) => k?.startsWith("sandbox-"));
+  if (d.iyzicoEnabled && d.iyzicoMode === "live" && sandboxKey) return { status: "error", message: "Girilen anahtarlar test (sandbox) anahtarı; Ortam olarak “Test” seçin ya da canlı anahtarları girin.", errors: { iyzicoMode: "Anahtarlarla uyuşmuyor." } };
+  if (d.iyzicoEnabled && d.iyzicoMode === "sandbox" && apiKey && !apiKey.startsWith("sandbox-")) return { status: "error", message: "Girilen API anahtarı canlı anahtar; Ortam olarak “Canlı” seçin ya da sandbox anahtarlarını girin.", errors: { iyzicoMode: "Anahtarlarla uyuşmuyor." } };
+  const installments = (d.iyzicoInstallments ?? "1,2,3,6,9")
+    .split(",")
+    .map((x) => Number(x.trim()))
+    .filter((n) => [1, 2, 3, 6, 9, 12].includes(n));
+
   const carriers = parseCarriers(fd);
   if ("error" in carriers) return { status: "error", message: carriers.error };
   await Promise.all([
@@ -145,6 +174,7 @@ export async function saveSettingsAction(_p: ActionState, fd: FormData): Promise
     saveSetting("announcement", { enabled: d.announcementEnabled, items: d.announcementItems.filter((i) => i.text).map((i) => ({ text: i.text, href: i.href.startsWith("/") || /^https?:\/\//.test(i.href) ? i.href : null })) }),
     saveSetting("popup", { enabled: d.popupEnabled, imageUrl: d.popupImage, alt: d.popupAlt ?? "", href: popupHref, startsAt: d.popupStartsAt, endsAt: d.popupEndsAt, delaySeconds: d.popupDelay, hideDays: d.popupHideDays }),
     saveSetting("shipping", { flatFee: d.flatFee, freeThreshold: d.freeThreshold, dispatchTime: d.dispatchTime, carriers: carriers.carriers }),
+    saveSetting("iyzico", { enabled: d.iyzicoEnabled, mode: d.iyzicoMode, apiKey, secretKeyEnc, secretLast4, installments: [...new Set([1, ...installments])].sort((x, y) => x - y).join(",") }),
     saveSetting("payments", { bankTransfer: { enabled: d.bankEnabled, bankName: d.bankName, accountHolder: d.accountHolder, iban: d.iban, note: d.bankNote } }),
     saveSetting("analytics", { gtmId: d.gtmId, ga4Id: d.ga4Id, googleAdsId: d.googleAdsId, metaPixelId: d.metaPixelId }),
     saveSetting("commerce", { returnDays: d.returnDays, googleProductCategory: d.googleProductCategory }),

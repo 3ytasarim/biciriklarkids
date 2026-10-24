@@ -1,7 +1,7 @@
 "use client";
 
 import { AdminForm, SaveBar } from "@/components/admin/AdminForm";
-import { Checkbox, Section, TextInput } from "@/components/admin/fields";
+import { Checkbox, Section, SelectInput, TextInput } from "@/components/admin/fields";
 import { ImagePicker } from "@/components/admin/ImagePicker";
 import { RowsEditor } from "@/components/admin/RowsEditor";
 import { FaqEditor } from "@/components/admin/FaqEditor";
@@ -11,7 +11,9 @@ import { saveSettingsAction } from "./actions";
 
 const n = (v: number | null | undefined) => (v == null ? "" : String(v));
 
-export function SettingsForm({ s, envOverrides }: { s: SiteSettings; envOverrides: string[] }) {
+export type IyzicoStatus = { fromEnv: boolean; active: boolean; secretStored: boolean; secretReadable: boolean };
+
+export function SettingsForm({ s, envOverrides, iyzicoStatus }: { s: SiteSettings; envOverrides: string[]; iyzicoStatus: IyzicoStatus }) {
   return (
     <AdminForm action={saveSettingsAction} className="max-w-4xl space-y-6">
       <Section title="Marka">
@@ -97,7 +99,47 @@ export function SettingsForm({ s, envOverrides }: { s: SiteSettings; envOverride
         </div>
       </Section>
 
-      <Section title="Ödeme: Havale / EFT" description="IBAN girilmeden bu yöntem ödeme sayfasında görünmez. Kartla ödeme (iyzico) sunucu ayarlarındaki IYZICO_* anahtarlarıyla açılır.">
+      <Section
+        title="Kartla ödeme (iyzico)"
+        description="iyzico panelinizdeki (Ayarlar › Firma Ayarları) API ve gizli anahtarı girin. Gizli anahtar şifreli saklanır ve bir daha ekranda gösterilmez; değiştirmek için yenisini yazmanız yeterli, boş bırakırsanız kayıtlı olan korunur."
+      >
+        {iyzicoStatus.fromEnv ? (
+          <p className="rounded-sm bg-amber-50 p-3 text-sm text-amber-900">Sunucuda IYZICO_* ortam değişkenleri tanımlı; kartla ödeme onlarla çalışıyor ve buradaki değerler kullanılmıyor.</p>
+        ) : (
+          <p className={`rounded-sm p-3 text-sm font-medium ${iyzicoStatus.active ? "bg-emerald-50 text-emerald-900" : "bg-neutral-100 text-neutral-700"}`}>
+            {iyzicoStatus.active
+              ? `Durum: AÇIK — ödeme sayfasında “Kredi / Banka Kartı” görünüyor (${s.iyzico.mode === "live" ? "canlı" : "test/sandbox"}).`
+              : iyzicoStatus.secretStored && !iyzicoStatus.secretReadable
+                ? "Durum: KAPALI — kayıtlı gizli anahtar bu sunucuda çözülemedi; lütfen gizli anahtarı yeniden girin."
+                : "Durum: KAPALI — anahtarları girip “Kartla ödemeyi aç”ı işaretleyin."}
+          </p>
+        )}
+        <Checkbox name="iyzicoEnabled" label="Kartla ödemeyi aç" defaultChecked={s.iyzico.enabled} />
+        <div className="grid gap-5 sm:grid-cols-2">
+          <SelectInput
+            name="iyzicoMode"
+            label="Ortam"
+            defaultValue={s.iyzico.mode}
+            options={[
+              { value: "live", label: "Canlı (gerçek ödeme) — api.iyzipay.com" },
+              { value: "sandbox", label: "Test (sandbox) — sandbox-api.iyzipay.com" },
+            ]}
+            hint="Canlı anahtarlarla “Canlı”, sandbox anahtarlarıyla “Test” seçin."
+          />
+          <TextInput name="iyzicoInstallments" label="Taksit seçenekleri" defaultValue={s.iyzico.installments} placeholder="1,2,3,6,9" hint="Virgülle: 1, 2, 3, 6, 9, 12. Tek çekim her zaman açıktır." />
+          <TextInput name="iyzicoApiKey" label="API anahtarı" defaultValue={s.iyzico.apiKey ?? ""} autoComplete="off" spellCheck={false} />
+          <TextInput
+            name="iyzicoSecretKey"
+            label="Gizli anahtar (Secret key)"
+            type="password"
+            autoComplete="new-password"
+            spellCheck={false}
+            placeholder={s.iyzico.secretLast4 ? `Kayıtlı (sonu ••••${s.iyzico.secretLast4}) — değiştirmek için yenisini yazın` : "Gizli anahtarı yapıştırın"}
+          />
+        </div>
+      </Section>
+
+      <Section title="Ödeme: Havale / EFT" description="IBAN girilmeden bu yöntem ödeme sayfasında görünmez. Kartla ödeme yukarıdaki iyzico bölümünden açılır.">
         <Checkbox name="bankEnabled" label="Havale/EFT ile ödemeyi aç" defaultChecked={s.payments.bankTransfer.enabled} />
         <div className="grid gap-5 sm:grid-cols-2">
           <TextInput name="bankName" label="Banka" defaultValue={s.payments.bankTransfer.bankName ?? ""} />

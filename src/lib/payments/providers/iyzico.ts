@@ -4,7 +4,7 @@ import { paymentTransactions } from "@/lib/db/schema";
 import { toKurus } from "@/lib/commerce/money";
 import { absoluteUrl } from "@/lib/seo/site";
 import type { PaymentInitContext, PaymentProvider } from "../types";
-import { initializeCheckoutForm, installmentOptions, iyzicoConfig, iyziPrice, verifyResponseSignature } from "../iyzico/client";
+import { initializeCheckoutForm, iyzicoConfig, iyziPrice, verifyResponseSignature } from "../iyzico/client";
 
 /**
  * iyzico Checkout Form (hosted ödeme sayfası).
@@ -13,17 +13,17 @@ import { initializeCheckoutForm, installmentOptions, iyzicoConfig, iyziPrice, ve
  *   app/api/payments/iyzico/callback/route.ts → markOrderPaid().
  * - Sepet: indirim kalemlere kuruş hassasiyetinde orantılı dağıtılır; kargo ayrı kalem. Kalemler toplamı = price = paidPrice
  *   (taksit vade farkı iyzico tarafında paidPrice'a eklenir).
- * - ENV anahtarları yoksa yöntem ödeme sayfasında görünmez.
+ * - Anahtar yoksa (ne ENV ne Admin › Ayarlar › Kartla ödeme) yöntem ödeme sayfasında görünmez.
  */
 export const iyzicoProvider: PaymentProvider = {
   id: "iyzico",
   label: "Kredi / Banka Kartı",
   description: "iyzico güvencesiyle kartla ödeyin; taksit seçenekleri ödeme ekranında gösterilir. Kart bilgileriniz sitemizde saklanmaz.",
-  isEnabled: () => iyzicoConfig() !== null,
+  isEnabled: (settings) => iyzicoConfig(settings) !== null,
   async initiate(ctx) {
-    const cfg = iyzicoConfig();
+    const cfg = iyzicoConfig(ctx.settings);
     if (!cfg) throw new Error("iyzico yapılandırılmamış.");
-    const payload = buildCheckoutPayload(ctx);
+    const payload = buildCheckoutPayload(ctx, cfg.installments);
     const res = await initializeCheckoutForm(cfg, payload);
 
     const ok = res.status === "success" && typeof res.paymentPageUrl === "string" && typeof res.token === "string";
@@ -75,7 +75,7 @@ const addr = (a: PaymentInitContext["checkout"]["shipping"]) => ({
   zipCode: a.postalCode || undefined,
 });
 
-export function buildCheckoutPayload(ctx: PaymentInitContext) {
+export function buildCheckoutPayload(ctx: PaymentInitContext, installments: number[] = [1, 2, 3, 6, 9]) {
   const { order, checkout } = ctx;
   const linesK = checkout.lines.map((l) => toKurus(l.lineTotal));
   const discounted = distributeDiscount(linesK, toKurus(checkout.discountTotal));
@@ -102,7 +102,7 @@ export function buildCheckoutPayload(ctx: PaymentInitContext) {
     basketId: order.orderNumber,
     paymentGroup: "PRODUCT",
     callbackUrl: absoluteUrl(`/api/payments/iyzico/callback?n=${encodeURIComponent(order.orderNumber)}&t=${encodeURIComponent(ctx.accessToken)}`),
-    enabledInstallments: installmentOptions(),
+    enabledInstallments: installments,
     buyer: {
       id: (checkout.customerId ?? `misafir-${order.orderNumber}`).slice(0, 50),
       name: clean(order.firstName, 50),

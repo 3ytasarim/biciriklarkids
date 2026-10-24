@@ -6,8 +6,8 @@ import { devTestProvider } from "./providers/dev-test";
 import { iyzicoProvider } from "./providers/iyzico";
 
 /**
- * Kayıtlı ödeme sağlayıcıları (sıra = ödeme sayfasındaki sıra). iyzico yalnızca IYZICO_* ENV anahtarları
- * tanımlıyken görünür. Başka sağlayıcı (PayTR, sanal POS) providers/ altına eklenir (bkz. types.ts).
+ * Kayıtlı ödeme sağlayıcıları (sıra = ödeme sayfasındaki sıra). iyzico yalnızca anahtarlar (ENV ya da
+ * Admin › Ayarlar › Kartla ödeme) tanımlıyken görünür. Başka sağlayıcı (PayTR, sanal POS) providers/ altına eklenir (bkz. types.ts).
  */
 const PROVIDERS: PaymentProvider[] = [iyzicoProvider, bankTransferProvider, devTestProvider];
 

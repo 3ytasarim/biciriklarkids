@@ -1,5 +1,7 @@
 import "server-only";
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
+import type { SiteSettings } from "@/lib/settings";
+import { decryptSecret } from "@/lib/crypto/secret-box";
 
 /**
  * iyzico REST istemcisi (resmî SDK'ya bağımlılık yok; yalnızca kullandığımız iki uç nokta).
@@ -11,24 +13,38 @@ import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
  *  IYZICO_API_KEY, IYZICO_SECRET_KEY  — iyzico panelinden (sandbox veya canlı)
  *  IYZICO_BASE_URL                    — https://sandbox-api.iyzipay.com (test) | https://api.iyzipay.com (canlı)
  *  IYZICO_INSTALLMENTS                — isteğe bağlı, ör. "1,2,3,6,9" (varsayılan tek çekim + 2,3,6,9)
+ * ENV yoksa aynı bilgiler Admin › Ayarlar › Kartla ödeme (iyzico) bölümünden okunur.
  */
-export type IyzicoConfig = { apiKey: string; secretKey: string; baseUrl: string };
+export type IyzicoConfig = { apiKey: string; secretKey: string; baseUrl: string; installments: number[] };
 
-export function iyzicoConfig(): IyzicoConfig | null {
-  const apiKey = process.env.IYZICO_API_KEY?.trim();
-  const secretKey = process.env.IYZICO_SECRET_KEY?.trim();
-  const baseUrl = process.env.IYZICO_BASE_URL?.trim().replace(/\/+$/, "");
-  if (!apiKey || !secretKey || !baseUrl) return null;
-  if (!/^https:\/\/(sandbox-)?api\.iyzipay\.com$/.test(baseUrl)) return null; // yanlış/şüpheli adres → kapalı
-  return { apiKey, secretKey, baseUrl };
+const BASE_URLS = { live: "https://api.iyzipay.com", sandbox: "https://sandbox-api.iyzipay.com" } as const;
+
+function parseInstallments(raw: string | undefined | null): number[] {
+  const list = raw?.split(",").map((x) => Number(x.trim())).filter((n) => [1, 2, 3, 6, 9, 12].includes(n));
+  return list?.length ? [...new Set([1, ...list])].sort((x, y) => x - y) : [1, 2, 3, 6, 9];
 }
 
-export const isIyzicoSandbox = () => Boolean(process.env.IYZICO_BASE_URL?.includes("sandbox"));
-
-export function installmentOptions(): number[] {
-  const raw = process.env.IYZICO_INSTALLMENTS?.split(",").map((x) => Number(x.trim())).filter((n) => [1, 2, 3, 6, 9, 12].includes(n));
-  return raw?.length ? [...new Set(raw)] : [1, 2, 3, 6, 9];
+/**
+ * Etkin iyzico yapılandırması: önce sunucu ENV'i (IYZICO_*), yoksa Admin › Ayarlar › Kartla ödeme.
+ * Eksik/çözülemeyen anahtar veya şüpheli adres → null (kart yöntemi ödeme sayfasında görünmez).
+ */
+export function iyzicoConfig(settings?: SiteSettings | null): IyzicoConfig | null {
+  const envKey = process.env.IYZICO_API_KEY?.trim();
+  const envSecret = process.env.IYZICO_SECRET_KEY?.trim();
+  const envBase = process.env.IYZICO_BASE_URL?.trim().replace(/\/+$/, "");
+  if (envKey && envSecret && envBase) {
+    if (!/^https:\/\/(sandbox-)?api\.iyzipay\.com$/.test(envBase)) return null; // yanlış/şüpheli adres → kapalı
+    return { apiKey: envKey, secretKey: envSecret, baseUrl: envBase, installments: parseInstallments(process.env.IYZICO_INSTALLMENTS) };
+  }
+  const s = settings?.iyzico;
+  if (!s?.enabled || !s.apiKey) return null;
+  const secretKey = decryptSecret(s.secretKeyEnc);
+  if (!secretKey) return null;
+  return { apiKey: s.apiKey, secretKey, baseUrl: BASE_URLS[s.mode], installments: parseInstallments(s.installments) };
 }
+
+/** iyzico ENV ile mi yönetiliyor (admin alanları o zaman yalnızca bilgi amaçlı) */
+export const iyzicoFromEnv = () => Boolean(process.env.IYZICO_API_KEY?.trim() && process.env.IYZICO_SECRET_KEY?.trim() && process.env.IYZICO_BASE_URL?.trim());
 
 /** iyzico fiyat biçimi (SDK formatPrice ile aynı): 200 → "200.0", 199.9 → "199.9", 12.345 → "12.35". */
 export function iyziPrice(n: number): string {

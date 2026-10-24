@@ -29,7 +29,7 @@ async function loadOrder(orderNumber: string, token: string) {
  * sipariş no / tutar / dolandırıcılık durumu eşleşirse sipariş "ödendi" yapılır. İdempotent.
  */
 export async function handleIyzicoCallback(orderNumber: string, accessToken: string, cfToken: string | null): Promise<string> {
-  const cfg = iyzicoConfig();
+  const cfg = iyzicoConfig(await getSiteSettings());
   const o = await loadOrder(orderNumber, accessToken);
   if (!o) return absoluteUrl("/siparis-takibi");
   if (o.paymentStatus === "paid") return orderUrl(o.orderNumber, accessToken, "basarili");
@@ -93,7 +93,7 @@ export async function handleIyzicoCallback(orderNumber: string, accessToken: str
 export async function restartIyzicoPayment(orderNumber: string, accessToken: string): Promise<string> {
   const o = await loadOrder(orderNumber, accessToken);
   if (!o) return absoluteUrl("/siparis-takibi");
-  if (o.paymentStatus === "paid" || ["cancelled", "refunded"].includes(o.status) || o.paymentProvider !== "iyzico" || !iyzicoConfig()) {
+  if (o.paymentStatus === "paid" || ["cancelled", "refunded"].includes(o.status) || o.paymentProvider !== "iyzico" || !iyzicoConfig(await getSiteSettings())) {
     return orderUrl(o.orderNumber, accessToken);
   }
   const [settings, items] = await Promise.all([getSiteSettings(), db.select().from(orderItems).where(eq(orderItems.orderId, o.id))]);

@@ -1,7 +1,9 @@
 import { requireAdmin } from "@/lib/auth/admin";
 import { getSiteSettings } from "@/lib/settings";
+import { decryptSecret } from "@/lib/crypto/secret-box";
+import { iyzicoConfig, iyzicoFromEnv } from "@/lib/payments/iyzico/client";
 import { PageHeader } from "@/components/admin/ui";
-import { SettingsForm } from "./SettingsForm";
+import { SettingsForm, type IyzicoStatus } from "./SettingsForm";
 
 export const metadata = { title: "Ayarlar" };
 
@@ -12,10 +14,20 @@ export default async function SettingsPage() {
   const envOverrides = Object.entries(env)
     .filter(([k]) => process.env[k]?.trim())
     .map(([, l]) => l);
+
+  // Şifreli gizli anahtar tarayıcıya ASLA gönderilmez; yalnızca durum bilgisi gider.
+  const iyzicoStatus: IyzicoStatus = {
+    fromEnv: iyzicoFromEnv(),
+    active: iyzicoConfig(s) !== null,
+    secretStored: Boolean(s.iyzico.secretKeyEnc),
+    secretReadable: decryptSecret(s.iyzico.secretKeyEnc) !== null,
+  };
+  const safe = { ...s, iyzico: { ...s.iyzico, secretKeyEnc: null } };
+
   return (
     <>
       <PageHeader title="Site ayarları" />
-      <SettingsForm s={s} envOverrides={envOverrides} />
+      <SettingsForm s={safe} envOverrides={envOverrides} iyzicoStatus={iyzicoStatus} />
     </>
   );
 }
