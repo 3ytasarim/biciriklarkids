@@ -6,6 +6,7 @@ import { CommerceProvider } from "@/components/commerce/CommerceProvider";
 import { CookieConsent } from "@/components/marketing/CookieConsent";
 import { Analytics } from "@/components/marketing/Analytics";
 import { RevealObserver } from "@/components/ui/RevealObserver";
+import { InductionButtons } from "@/components/ui/induction-button";
 import { PromoPopup, type PromoPopupData } from "@/components/marketing/PromoPopup";
 import { getMediaDimensions } from "@/lib/upload";
 
@@ -27,6 +28,7 @@ export default async function ShopLayout({ children }: { children: React.ReactNo
       <CookieConsent />
       <Analytics ids={resolveAnalyticsIds(settings.analytics)} />
       <RevealObserver />
+      <InductionButtons />
       {popup ? <PromoPopup data={popup} /> : null}
     </CommerceProvider>
   );

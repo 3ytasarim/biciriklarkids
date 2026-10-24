@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight, HeartHandshake, ListOrdered, Package, Palette, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, Heart, HeartHandshake, ListOrdered, Package, PackageOpen, Palette, Quote, Shapes, ShieldCheck, Sparkles, Spool } from "lucide-react";
 import { getPageBySlug } from "@/lib/content/queries";
 import { getCategoryTree } from "@/lib/catalog/queries";
 import { getSiteSettings } from "@/lib/settings";
@@ -14,7 +14,6 @@ import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { FaqList } from "@/components/ui/FaqList";
 import { SkyDrift } from "@/components/ui/Clouds";
 import { CountUp } from "@/components/ui/CountUp";
-import { LazyVideo } from "@/components/video/LazyVideo";
 
 /**
  * Hakkımızda: metinler Admin › Sayfalar › Hakkımızda'dan (özet + "Hikayemiz" içeriği + SSS) gelir;
@@ -37,11 +36,13 @@ const VALUES = [
   { icon: Package, tint: "tint-sun", title: "Özenli paketleme", text: "Siparişinizi verdiğiniz haliyle, birebir aynı şekilde ve özenle paketleyerek gönderiyoruz." },
 ] as const;
 
+const TINTS = ["tint-sun", "tint-sky", "tint-berry", "tint-leaf"] as const;
+
 const STEPS = [
-  { title: "Kutuyu aç", text: "Keçe parçalar, güvenli iğne ve anlatım tek kutuda hazır." },
-  { title: "Parçaları tanı", text: "Anlatımdaki sırayı takip ederek parçaları yan yana diz." },
-  { title: "Dik ve doldur", text: "Kenarları dik, oyuncak kitlerinde elyafı doldurup kapat." },
-  { title: "Gururla kullan", text: "Kendi yaptığı çantayı takar, oyuncağıyla oynar." },
+  { icon: PackageOpen, title: "Kutuyu aç", text: "Keçe parçalar, güvenli iğne ve anlatım tek kutuda hazır." },
+  { icon: Shapes, title: "Parçaları tanı", text: "Anlatımdaki sırayı takip ederek parçaları yan yana diz." },
+  { icon: Spool, title: "Dik ve doldur", text: "Kenarları dik, oyuncak kitlerinde elyafı doldurup kapat." },
+  { icon: Heart, title: "Gururla kullan", text: "Kendi yaptığı çantayı takar, oyuncağıyla oynar." },
 ] as const;
 
 export default async function AboutPage() {
@@ -51,6 +52,7 @@ export default async function AboutPage() {
   const cats = tree.roots.filter((c) => c.productCount > 0);
   const productTotal = cats.reduce((s, c) => s + c.productCount, 0);
   const html = sanitizeRichText(page.content);
+  const collage = cats.filter((c) => c.image).slice(0, 4);
   const faq = page.faq.filter((f) => f.question && f.answer);
   const crumbs = [
     { name: "Ana Sayfa", path: "/" },
@@ -120,46 +122,99 @@ export default async function AboutPage() {
         </dl>
       </section>
 
-      {/* ── Hikayemiz (admin içeriği) ── */}
-      <section id="hikayemiz" aria-labelledby="hikayemiz-baslik" className="shell scroll-mt-28 py-20 sm:py-28">
-        <div className="grid gap-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-16">
-          <div className="lg:sticky lg:top-32 lg:self-start">
+      {/* ── Hikayemiz: kolaj + dönen rozet + yüzen etiketler | hikâye kartı (admin içeriği) ── */}
+      <section id="hikayemiz" aria-labelledby="hikayemiz-baslik" className="relative scroll-mt-28 overflow-hidden py-20 sm:py-28">
+        <div aria-hidden="true" className="about-blob absolute -top-24 -right-40 -z-10 h-[520px] w-[520px] rounded-full bg-[radial-gradient(circle,var(--color-berry-50),transparent_70%)]" />
+        <div className="shell grid items-center gap-14 lg:grid-cols-2 lg:gap-20">
+          <div className="relative mx-auto w-full max-w-[560px]">
+            <ul aria-hidden="true" className="grid grid-cols-2 gap-4 sm:gap-5">
+              {collage.map((c, i) => (
+                <li
+                  key={c.id}
+                  className={`reveal story-tile ${TINTS[i % TINTS.length]} relative overflow-hidden rounded-[1.75rem] bg-(--tint) ${i === 0 ? "row-span-2" : ""} ${i === 3 ? "col-span-2" : ""}`}
+                  style={{ ["--reveal-delay" as string]: `${i * 110}ms` }}
+                >
+                  <div className={`relative ${i === 0 ? "h-full min-h-[260px]" : i === 3 ? "aspect-[2/1]" : "aspect-square"}`}>
+                    <Image src={c.image!} alt="" fill sizes="(min-width: 1024px) 270px, 45vw" className="object-contain p-4 mix-blend-multiply transition-transform duration-700 ease-(--ease-premium) hover:scale-105" />
+                  </div>
+                </li>
+              ))}
+            </ul>
+
+            {/* Dönen yazılı rozet */}
+            <div aria-hidden="true" className="absolute top-1/2 left-1/2 h-32 w-32 -translate-x-1/2 -translate-y-1/2 sm:h-40 sm:w-40">
+              <div className="flex h-full w-full items-center justify-center rounded-full bg-white shadow-[0_24px_50px_-20px_rgb(16_40_74/0.5)]">
+                <svg viewBox="0 0 200 200" className="story-spin absolute inset-0 h-full w-full">
+                  <defs>
+                    <path id="rozet-yol" d="M100,100 m-72,0 a72,72 0 1,1 144,0 a72,72 0 1,1 -144,0" />
+                  </defs>
+                  <text className="fill-ink text-[19px] font-extrabold tracking-[0.2em] uppercase">
+                    <textPath href="#rozet-yol">El yapımı mutluluk • Bıcırıklar Kids •</textPath>
+                  </text>
+                </svg>
+                <HeartHandshake className="h-10 w-10 text-berry sm:h-12 sm:w-12" />
+              </div>
+            </div>
+
+            {/* Yüzen etiketler */}
+            <p className="about-float story-chip absolute top-6 -left-3 sm:-left-8">
+              <ShieldCheck aria-hidden="true" className="h-4 w-4 text-leaf-ink" /> Plastik güvenli iğne
+            </p>
+            <p className="about-float about-float-b story-chip absolute -right-2 bottom-10 sm:-right-6">
+              <ListOrdered aria-hidden="true" className="h-4 w-4 text-brand-ink" /> Adım adım anlatım
+            </p>
+          </div>
+
+          <div>
             <p className="eyebrow reveal">Hikayemiz</p>
             <h2 id="hikayemiz-baslik" className="display-2 reveal mt-4" style={{ ["--reveal-delay" as string]: "80ms" }}>
-              Üretmenin mutluluğunu çocuklarla paylaşıyoruz
+              Üretmenin mutluluğunu <span className="text-rainbow">çocuklarla</span> paylaşıyoruz
             </h2>
-            <div className="reveal mt-8 hidden max-w-[300px] lg:block" style={{ ["--reveal-delay" as string]: "160ms" }}>
-              <LazyVideo src="/videos/nasil-yapilir-dikey.mp4" poster="/videos/nasil-yapilir-dikey.webp" aspectRatio="9/16" title="Keçe kitin adım adım dikilişi" />
+            <div className="reveal story-card relative mt-8 rounded-[1.75rem] bg-white p-7 shadow-[0_30px_70px_-45px_rgb(16_40_74/0.55)] ring-1 ring-line sm:p-9" style={{ ["--reveal-delay" as string]: "160ms" }}>
+              <Quote aria-hidden="true" className="absolute -top-5 left-7 h-10 w-10 rounded-full bg-sun p-2 text-white shadow-lg" />
+              <div className="prose rich story-rich max-w-none" dangerouslySetInnerHTML={{ __html: html }} />
+              <div className="mt-7 flex items-center gap-3 border-t border-dashed border-line-strong pt-6">
+                <span aria-hidden="true" className="flex h-11 w-11 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--color-brand),var(--color-berry))] text-sm font-extrabold text-white">
+                  BK
+                </span>
+                <span>
+                  <span className="block font-display font-extrabold">Bıcırıklar Kids Ekibi</span>
+                  <span className="block text-sm text-muted">Minik eller için büyük hayaller</span>
+                </span>
+              </div>
             </div>
           </div>
-          <div className="prose rich reveal max-w-none sm:prose-lg" dangerouslySetInnerHTML={{ __html: html }} />
         </div>
       </section>
 
-      {/* ── Değerler ── */}
-      <section aria-labelledby="degerler-baslik" className="bg-cream py-20 sm:py-28">
+      {/* ── Değerler: renkli dikişli kartlar ── */}
+      <section aria-labelledby="degerler-baslik" className="relative isolate overflow-hidden bg-ink py-20 text-white sm:py-28">
+        <SkyDrift className="-z-10 opacity-[0.12]" />
         <div className="shell">
           <div className="mx-auto max-w-2xl text-center">
-            <p className="eyebrow reveal mx-auto">Neye önem veriyoruz?</p>
+            <p className="eyebrow reveal mx-auto border-white/20 bg-white/10 text-white">Neye önem veriyoruz?</p>
             <h2 id="degerler-baslik" className="display-2 reveal mt-4" style={{ ["--reveal-delay" as string]: "80ms" }}>
-              Her kutuda aynı özen
+              Her kutuda aynı <span className="text-rainbow-light">özen</span>
             </h2>
           </div>
-          <ul className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <ul className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {VALUES.map(({ icon: Icon, tint, title, text }, i) => (
-              <li key={title} className={`about-card reveal ${tint} group rounded-2xl bg-white p-7 ring-1 ring-line`} style={{ ["--reveal-delay" as string]: `${i * 100}ms` }}>
-                <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-(--tint) text-(--tint-ink) transition-transform duration-500 ease-(--ease-premium) group-hover:-rotate-6 group-hover:scale-110">
-                  <Icon aria-hidden="true" className="h-7 w-7" />
+              <li key={title} className={`value-card reveal ${tint} group relative overflow-hidden rounded-[1.75rem] bg-(--tint) p-7 text-ink`} style={{ ["--reveal-delay" as string]: `${i * 110}ms` }}>
+                <span aria-hidden="true" className="absolute -top-3 -right-1 font-display text-[5.5rem] leading-none font-extrabold text-(--tint-base) opacity-15">
+                  0{i + 1}
                 </span>
-                <h3 className="mt-6 font-display text-xl font-extrabold">{title}</h3>
-                <p className="mt-2 text-[15px] leading-relaxed text-ink-soft">{text}</p>
+                <span className="relative flex h-16 w-16 items-center justify-center rounded-[1.25rem] bg-white text-(--tint-ink) shadow-[0_14px_30px_-16px_rgb(16_40_74/0.5)] transition-transform duration-500 ease-(--ease-premium) group-hover:-rotate-8 group-hover:scale-110">
+                  <Icon aria-hidden="true" className="h-8 w-8" />
+                </span>
+                <h3 className="relative mt-7 font-display text-2xl font-extrabold">{title}</h3>
+                <p className="relative mt-2 text-[15px] leading-relaxed text-ink-soft">{text}</p>
               </li>
             ))}
           </ul>
         </div>
       </section>
 
-      {/* ── Süreç ── */}
+      {/* ── Süreç: ekrana gelince çizilen dikiş yolu üzerinde adımlar ── */}
       <section aria-labelledby="surec-baslik" className="shell py-20 sm:py-28">
         <div className="mx-auto max-w-2xl text-center">
           <p className="eyebrow reveal mx-auto">Kutudan oyuncağa</p>
@@ -167,17 +222,23 @@ export default async function AboutPage() {
             Dört adımda kendi eseri
           </h2>
         </div>
-        <ol className="about-steps relative mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
-          {STEPS.map((s, i) => (
-            <li key={s.title} className="reveal relative text-center" style={{ ["--reveal-delay" as string]: `${i * 140}ms` }}>
-              <span className="relative z-10 mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-brand-ink font-display text-2xl font-extrabold text-white shadow-[0_16px_30px_-14px_rgb(0_103_209/0.8)] ring-8 ring-paper">
-                {i + 1}
-              </span>
-              <h3 className="mt-5 font-display text-xl font-extrabold">{s.title}</h3>
-              <p className="mx-auto mt-2 max-w-[240px] text-[15px] text-ink-soft">{s.text}</p>
-            </li>
-          ))}
-        </ol>
+        <div className="reveal relative mt-16">
+          <svg aria-hidden="true" viewBox="0 0 1000 120" preserveAspectRatio="none" className="steps-path absolute top-6 left-[12.5%] hidden h-24 w-3/4 lg:block">
+            <path d="M0 40 C 160 -10, 330 110, 500 40 S 840 -10, 1000 40" fill="none" stroke="var(--color-brand-100)" strokeWidth="4" strokeLinecap="round" strokeDasharray="12 10" />
+          </svg>
+          <ol className="relative grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {STEPS.map(({ icon: Icon, title, text }, i) => (
+              <li key={title} className="step-card reveal group relative rounded-[1.75rem] bg-white p-7 pt-9 text-center ring-1 ring-line" style={{ ["--reveal-delay" as string]: `${200 + i * 160}ms` }}>
+                <span className="relative mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--color-brand),var(--color-lilac))] text-white shadow-[0_18px_34px_-14px_rgb(0_103_209/0.7)] ring-8 ring-paper transition-transform duration-500 ease-(--ease-premium) group-hover:scale-110 group-hover:rotate-6">
+                  <Icon aria-hidden="true" className="h-9 w-9" />
+                  <span className="absolute -right-1 -bottom-1 flex h-8 w-8 items-center justify-center rounded-full bg-sun font-display text-sm font-extrabold text-ink ring-4 ring-white">{i + 1}</span>
+                </span>
+                <h3 className="mt-6 font-display text-xl font-extrabold">{title}</h3>
+                <p className="mx-auto mt-2 max-w-[240px] text-[15px] leading-relaxed text-ink-soft">{text}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
       </section>
 
       {/* ── Ürün yelpazesi ── */}
