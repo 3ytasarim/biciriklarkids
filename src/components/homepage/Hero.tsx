@@ -35,7 +35,7 @@ function Title({ title, highlight }: { title: string; highlight?: string | null 
     <>
       {before}
       <span className="relative inline-block pb-3 text-brand-ink sm:pb-4 lg:pb-5">
-        {highlight}
+        <span className="text-rainbow">{highlight}</span>
         {/* Dikiş çizgisi: harf uzantılarının (y, ç) altında; açılışta soldan çizilir, sonra dikişler yavaşça akar. */}
         <svg aria-hidden="true" viewBox="0 0 300 16" preserveAspectRatio="none" className="hero-stitch absolute bottom-0 left-0 h-3 w-full text-sun sm:h-4">
           <path d="M3 10 C 60 3, 120 14, 180 7 S 270 4, 297 9" fill="none" stroke="currentColor" strokeWidth="5" strokeLinecap="round" strokeDasharray="14 9" />

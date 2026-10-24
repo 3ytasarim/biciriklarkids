@@ -1151,3 +1151,106 @@ li:nth-child(odd) > .announce-star {
     animation: none;
   }
 }
+
+/* Hakkımızda */
+/* Sonsuz akan gökkuşağı metin (koyu tonlar: açık zeminde büyük başlık kontrastı korunur) */
+.text-rainbow {
+  background: linear-gradient(90deg, #0067d1, #7b3fb0, #c2185b, #d84315, #b26a00, #2e7d32, #0067d1) 0 0 / 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  animation: credit-flow 8s linear infinite;
+}
+.about-float {
+  animation: about-float 7s ease-in-out infinite;
+}
+.about-float-b {
+  animation-duration: 8.5s;
+  animation-delay: -2s;
+}
+.about-float-c {
+  animation-duration: 6.5s;
+  animation-delay: -4s;
+}
+@keyframes about-float {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -14px;
+  }
+}
+.about-blob {
+  animation: about-morph 14s ease-in-out infinite alternate;
+}
+@keyframes about-morph {
+  0% {
+    border-radius: 42% 58% 55% 45% / 48% 42% 58% 52%;
+    rotate: 0deg;
+  }
+  100% {
+    border-radius: 58% 42% 46% 54% / 40% 56% 44% 60%;
+    rotate: 25deg;
+  }
+}
+.about-twinkle {
+  animation: credit-twinkle 2.6s ease-in-out infinite;
+}
+.about-card,
+.about-cat {
+  transition:
+    transform 0.5s var(--ease-premium),
+    box-shadow 0.5s var(--ease-premium);
+}
+.about-card:hover,
+.about-cat:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 30px 50px -30px rgb(16 40 74 / 0.45);
+}
+/* Adımlar arası kesikli "dikiş" çizgisi (geniş ekran) */
+@media (min-width: 1024px) {
+  .about-steps::before {
+    content: "";
+    position: absolute;
+    top: 2rem;
+    left: 12.5%;
+    right: 12.5%;
+    border-top: 3px dashed var(--color-brand-100);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .text-rainbow,
+  .about-float,
+  .about-blob,
+  .about-twinkle {
+    animation: none;
+  }
+}
+
+/* Blog yazı gövdesi: çapa kaydırma payı, vurgulu ara başlıklar */
+.blog-body :where(h2) {
+  scroll-margin-top: 7rem;
+  position: relative;
+  padding-left: 1rem;
+}
+.blog-body :where(h2)::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.2em;
+  bottom: 0.2em;
+  width: 4px;
+  border-radius: 4px;
+  background: linear-gradient(180deg, var(--color-brand), var(--color-berry));
+}
+.blog-body :where(a) {
+  text-decoration-color: color-mix(in srgb, var(--color-brand) 40%, transparent);
+  text-underline-offset: 3px;
+  transition: text-decoration-color 0.2s;
+}
+.blog-body :where(a):hover {
+  text-decoration-color: currentColor;
+}
