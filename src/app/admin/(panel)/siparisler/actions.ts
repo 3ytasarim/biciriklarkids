@@ -87,3 +87,26 @@ export async function markPaidAction(id: string): Promise<{ ok: true } | { ok: f
   revalidatePath(`/admin/siparisler/${id}`);
   return changed ? { ok: true } : { ok: false, error: "Sipariş zaten ödenmiş görünüyor." };
 }
+
+/**
+ * Listeden tek tıkla iptal: durum "İptal edildi", stok iadesi, zaman çizelgesi kaydı ve müşteriye iptal
+ * e-postası. Kartla ödenmiş siparişin para iadesi ayrıca iyzico panelinden yapılmalıdır (burada para hareketi yok).
+ */
+export async function cancelOrderAction(id: string): Promise<{ ok: true } | { ok: false; error: string }> {
+  const admin = await requireAdmin();
+  if (!isUuid(id)) return { ok: false, error: "Geçersiz sipariş." };
+  const [o] = await db.select({ status: orders.status, orderNumber: orders.orderNumber }).from(orders).where(eq(orders.id, id)).limit(1);
+  if (!o) return { ok: false, error: "Sipariş bulunamadı." };
+  if (o.status === "cancelled" || o.status === "refunded") return { ok: false, error: "Sipariş zaten iptal/iade edilmiş." };
+  if (o.status === "shipped" || o.status === "delivered") return { ok: false, error: "Kargoya verilmiş/teslim edilmiş sipariş listeden iptal edilemez; sipariş detayından “İade edildi” durumunu kullanın." };
+
+  await db.update(orders).set({ status: "cancelled", cancelledAt: new Date() }).where(eq(orders.id, id));
+  await restockOrder(id);
+  await db.insert(orderEvents).values({ orderId: id, type: "status", fromStatus: o.status, toStatus: "cancelled", message: `Sipariş durumu: ${ORDER_STATUS_LABELS.cancelled}.`, isPublic: true, actor: admin.name });
+  after(() => sendOrderEmail("order_cancelled", id));
+
+  revalidatePath("/admin/siparisler");
+  revalidatePath(`/admin/siparisler/${id}`);
+  revalidateSite();
+  return { ok: true };
+}
