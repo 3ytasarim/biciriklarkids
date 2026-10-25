@@ -34,7 +34,7 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
       <PageHeader title={`Sipariş ${o.orderNumber}`} description={formatDateTime(o.createdAt)} back={{ label: "Siparişler", href: "/admin/siparisler" }} />
       <div className="mb-6 flex flex-wrap gap-2">
         <Badge tone={STATUS_TONE[o.status]}>{ORDER_STATUS_LABELS[o.status]}</Badge>
-        <Badge tone={o.paymentStatus === "paid" ? "green" : "amber"}>
+        <Badge tone={o.paymentStatus === "paid" ? "green" : ["failed", "cancelled", "refunded"].includes(o.paymentStatus) ? "red" : "amber"}>
           {PAYMENT_LABELS[o.paymentProvider] ?? o.paymentProvider} · {PAYMENT_STATUS_LABELS[o.paymentStatus]}
         </Badge>
         {o.couponCode ? <Badge>Kupon: {o.couponCode}</Badge> : null}
@@ -141,7 +141,7 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
                 </li>
               ))}
             </ul>
-            {o.paymentStatus !== "paid" && o.paymentProvider === "bank_transfer" ? <MarkPaidButton id={o.id} /> : null}
+            {!["paid", "cancelled", "refunded"].includes(o.paymentStatus) && o.paymentProvider === "bank_transfer" ? <MarkPaidButton id={o.id} /> : null}
           </section>
           <OrderUpdateForm id={o.id} status={o.status} carrier={o.carrier} trackingNumber={o.trackingNumber} />
         </aside>

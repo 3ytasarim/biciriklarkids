@@ -16,6 +16,7 @@ export const PAYMENT_STATUS_LABELS = {
   failed: "Başarısız",
   refunded: "İade edildi",
   partially_refunded: "Kısmi iade",
+  cancelled: "İptal edildi",
 } as const;
 
 export type OrderStatus = keyof typeof ORDER_STATUS_LABELS;

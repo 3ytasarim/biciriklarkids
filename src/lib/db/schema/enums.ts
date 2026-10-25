@@ -15,7 +15,7 @@ export const orderStatus = pgEnum("order_status", [
   "refunded",
 ]);
 
-export const paymentStatus = pgEnum("payment_status", ["pending", "awaiting_transfer", "paid", "failed", "refunded", "partially_refunded"]);
+export const paymentStatus = pgEnum("payment_status", ["pending", "awaiting_transfer", "paid", "failed", "refunded", "partially_refunded", "cancelled"]);
 
 export const couponType = pgEnum("coupon_type", ["percent", "fixed", "free_shipping"]);
 export const reviewStatus = pgEnum("review_status", ["pending", "approved", "rejected"]);

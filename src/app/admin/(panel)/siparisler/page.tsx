@@ -42,7 +42,7 @@ function OrderRow({ o, cancellable }: { o: Row; cancellable: boolean }) {
       <td className="px-4 py-3 whitespace-nowrap text-neutral-600">{formatDateTime(o.cancelledAt && !cancellable ? o.cancelledAt : o.createdAt)}</td>
       <td className="px-4 py-3 font-semibold whitespace-nowrap tabular-nums">{formatPrice(o.grandTotal)}</td>
       <td className="px-4 py-3">
-        <Badge tone={o.paymentStatus === "paid" ? "green" : o.paymentStatus === "failed" ? "red" : "amber"}>{PAYMENT_STATUS_LABELS[o.paymentStatus]}</Badge>
+        <Badge tone={o.paymentStatus === "paid" ? "green" : ["failed", "cancelled", "refunded"].includes(o.paymentStatus) ? "red" : "amber"}>{PAYMENT_STATUS_LABELS[o.paymentStatus]}</Badge>
       </td>
       <td className="px-4 py-3">
         <Badge tone={STATUS_TONE[o.status]}>{ORDER_STATUS_LABELS[o.status]}</Badge>

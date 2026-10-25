@@ -10,6 +10,7 @@ import { ORDER_STATUS_LABELS, STATUS_TONE } from "@/lib/commerce/order-labels";
 import { formatPrice } from "@/lib/commerce/money";
 import { formatDateTime } from "@/lib/utils";
 import { Badge, PageHeader, Table } from "@/components/admin/ui";
+import { SalesReport } from "./SalesReport";
 
 export const metadata = { title: "Panel" };
 
@@ -65,6 +66,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
     <>
       <PageHeader title={`Merhaba, ${user.name.split(" ")[0]}`} description="Bıcırıklar Kids mağaza özeti" />
       {(await searchParams).yetki === "yok" ? <p className="mb-6 rounded-md bg-amber-50 p-3 text-sm text-amber-900">Bu işlem için yetkiniz yok.</p> : null}
+      <SalesReport />
       <section className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
         {stats.map((s) => (
           <Link key={s.label} href={s.href} className={`group rounded-lg border border-neutral-200 bg-white p-4 transition-transform hover:-translate-y-0.5 ${s.tint}`}>
