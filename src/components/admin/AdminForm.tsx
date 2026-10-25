@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, startTransition, useActionState, useCallback, useContext, useEffect, useRef, useState } from "react";
-import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
+import { AlertCircle, Check, CheckCircle2, Loader2 } from "lucide-react";
 
 export type ActionState = { status: "idle" | "error" | "success"; message?: string; errors?: Record<string, string> };
 type Action = (prev: ActionState, formData: FormData) => Promise<ActionState>;
@@ -32,6 +32,8 @@ const FIELD_LABELS: Record<string, string> = {
 const ErrorsContext = createContext<Record<string, string>>({});
 const PendingContext = createContext(false);
 const DirtyContext = createContext<() => void>(() => {});
+/** Kaydet çubuğu için: kaydedilmemiş değişiklik var mı, son kayıt başarılı mı */
+const StatusContext = createContext<{ dirty: boolean; saved: boolean }>({ dirty: false, saved: false });
 
 /** Gizli input'la değer tutan editörler (görsel, galeri, özellik satırları) değişince çağırır. */
 export function useMarkDirty(): () => void {
@@ -109,6 +111,7 @@ export function AdminForm({ action, children, className = "", id, resetOnSuccess
       }}
     >
       <PendingContext.Provider value={pending}>
+        <StatusContext.Provider value={{ dirty, saved: state.status === "success" && !dirty }}>
         <DirtyContext.Provider value={markDirty}>
         <ErrorsContext.Provider value={state.errors ?? {}}>
           <div ref={bannerRef} aria-live="assertive" className="[grid-column:1/-1] empty:hidden">
@@ -139,22 +142,34 @@ export function AdminForm({ action, children, className = "", id, resetOnSuccess
           {children}
         </ErrorsContext.Provider>
         </DirtyContext.Provider>
+        </StatusContext.Provider>
       </PendingContext.Provider>
     </form>
   );
 }
 
-/** Formun altında sabit kaydet çubuğu. */
+/**
+ * Formun altında yüzen cam kaydet çubuğu (dock): parlak üst kenar + alt bevel + yumuşak ışık katmanı.
+ * Solda durum: kaydedilmemiş değişiklik (nabız atan nokta) / kaydedildi / değişiklik yok.
+ */
 export function SaveBar({ label = "Kaydet", extra }: { label?: string; extra?: React.ReactNode }) {
   const pending = useFormPending();
+  const { dirty, saved } = useContext(StatusContext);
+  const tone = pending ? "pending" : dirty ? "dirty" : saved ? "saved" : "idle";
+  const text = { pending: "Kaydediliyor…", dirty: "Kaydedilmemiş değişiklikler var", saved: "Tüm değişiklikler kaydedildi", idle: "Değişiklik yok" }[tone];
   return (
-    <div className="save-bar sticky bottom-4 z-20 mt-10 flex flex-wrap items-center justify-end gap-3 rounded-2xl px-4 py-3 sm:px-5">
-      <p className="mr-auto hidden text-sm text-ink-soft sm:block">Değişiklikler kaydedilene kadar sitede görünmez.</p>
-      {extra}
-      <button type="submit" disabled={pending} className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[linear-gradient(135deg,var(--color-brand-ink),var(--color-brand-deep))] px-6 text-sm font-bold text-white shadow-[0_10px_24px_-10px_rgb(0_103_209/0.8)] transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-[0_14px_30px_-10px_rgb(0_103_209/0.9)] disabled:translate-y-0 disabled:opacity-60">
-        {pending ? <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" /> : null}
-        {pending ? "Kaydediliyor…" : label}
-      </button>
+    <div className="save-dock sticky bottom-5 z-20 mt-10" data-tone={tone}>
+      <div className="save-dock-inner flex flex-wrap items-center gap-3 rounded-[22px] py-2.5 pr-2.5 pl-5">
+        <p className="mr-auto flex items-center gap-2.5 text-sm font-semibold text-ink-soft" aria-live="polite">
+          <span aria-hidden="true" className="save-dock-dot" />
+          {text}
+        </p>
+        {extra}
+        <button type="submit" disabled={pending} className="save-dock-btn inline-flex min-h-11 items-center gap-2 rounded-full px-6 text-sm font-bold text-white disabled:opacity-70">
+          {pending ? <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" /> : <Check aria-hidden="true" className="h-4 w-4" />}
+          {pending ? "Kaydediliyor…" : label}
+        </button>
+      </div>
     </div>
   );
 }
