@@ -148,9 +148,10 @@ export function AdminForm({ action, children, className = "", id, resetOnSuccess
 export function SaveBar({ label = "Kaydet", extra }: { label?: string; extra?: React.ReactNode }) {
   const pending = useFormPending();
   return (
-    <div className="sticky bottom-0 z-20 -mx-4 mt-10 flex flex-wrap items-center justify-end gap-3 border-t border-neutral-200 bg-white/95 px-4 py-4 backdrop-blur sm:-mx-8 sm:px-8">
+    <div className="save-bar sticky bottom-4 z-20 mt-10 flex flex-wrap items-center justify-end gap-3 rounded-2xl px-4 py-3 sm:px-5">
+      <p className="mr-auto hidden text-sm text-ink-soft sm:block">Değişiklikler kaydedilene kadar sitede görünmez.</p>
       {extra}
-      <button type="submit" disabled={pending} className="inline-flex min-h-11 items-center gap-2 rounded-full bg-ink px-6 text-sm font-semibold text-white transition-colors hover:bg-ink-soft disabled:opacity-60">
+      <button type="submit" disabled={pending} className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[linear-gradient(135deg,var(--color-brand-ink),var(--color-brand-deep))] px-6 text-sm font-bold text-white shadow-[0_10px_24px_-10px_rgb(0_103_209/0.8)] transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-[0_14px_30px_-10px_rgb(0_103_209/0.9)] disabled:translate-y-0 disabled:opacity-60">
         {pending ? <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" /> : null}
         {pending ? "Kaydediliyor…" : label}
       </button>

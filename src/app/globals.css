@@ -1410,3 +1410,14 @@ li:nth-child(odd) > .announce-star {
     clip-path: none;
   }
 }
+
+/* Yönetim paneli: yüzen cam kaydet çubuğu (form kartının içinde kalır, kenarlara taşmaz) */
+.save-bar {
+  background: rgb(255 255 255 / 0.72);
+  border: 1px solid rgb(255 255 255 / 0.9);
+  box-shadow:
+    0 18px 40px -22px rgb(16 40 74 / 0.45),
+    inset 0 1px 0 rgb(255 255 255 / 0.8);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+}
