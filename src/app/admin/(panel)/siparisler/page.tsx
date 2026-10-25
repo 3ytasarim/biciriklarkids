@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 import { and, count, desc, eq, ilike, or, type SQL } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { orders } from "@/lib/db/schema";
@@ -35,11 +36,11 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
           { name: "odeme", label: "Ödeme", value: sp.odeme, options: Object.entries(PAYMENT_STATUS_LABELS).map(([value, label]) => ({ value, label })) },
         ]}
       />
-      <Table head={["Sipariş", "Müşteri", "Tarih", "Tutar", "Ödeme", "Durum"]} empty={rows.length ? null : <EmptyRow text="Sipariş bulunamadı." />}>
+      <Table head={["Sipariş", "Müşteri", "Tarih", "Tutar", "Ödeme", "Durum", ""]} empty={rows.length ? null : <EmptyRow text="Sipariş bulunamadı." />}>
         {rows.map((o) => (
           <tr key={o.id} className="hover:bg-neutral-50">
             <td className="px-4 py-3">
-              <Link href={`/admin/siparisler/${o.id}`} className="font-semibold hover:underline">
+              <Link href={`/admin/siparisler/${o.id}`} className="font-semibold text-brand-ink underline decoration-brand/30 underline-offset-4 hover:decoration-brand">
                 {o.orderNumber}
               </Link>
             </td>
@@ -54,6 +55,15 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
             </td>
             <td className="px-4 py-3">
               <Badge tone={STATUS_TONE[o.status]}>{ORDER_STATUS_LABELS[o.status]}</Badge>
+            </td>
+            <td className="px-4 py-3 text-right">
+              <Link
+                href={`/admin/siparisler/${o.id}`}
+                aria-label={`${o.orderNumber} siparişini aç`}
+                className="inline-flex min-h-10 items-center gap-1.5 rounded-full bg-[linear-gradient(135deg,#1e8cf5,#0067d1)] px-4 text-sm font-bold whitespace-nowrap text-white shadow-[0_8px_18px_-10px_rgb(0_103_209/0.9)] transition-transform hover:-translate-y-0.5"
+              >
+                Siparişi aç <ChevronRight aria-hidden="true" className="h-4 w-4" />
+              </Link>
             </td>
           </tr>
         ))}
