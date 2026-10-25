@@ -1423,17 +1423,11 @@ li:nth-child(odd) > .announce-star {
   background: linear-gradient(135deg, rgb(255 255 255 / 0.82) 0%, rgb(240 247 255 / 0.62) 45%, rgb(255 255 255 / 0.55) 100%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgb(255 255 255 / 0.7);
-  border-top-color: rgb(255 255 255 / 0.98);
-  border-left-color: rgb(255 255 255 / 0.9);
-  border-bottom-color: rgb(16 40 74 / 0.08);
-  border-right-color: rgb(16 40 74 / 0.05);
+  /* Çerçevesiz: yalnızca yumuşak gölge ile zeminden ayrılır */
+  border: 0;
   box-shadow:
-    0 24px 50px -22px rgb(16 40 74 / 0.45),
-    0 8px 18px -10px rgb(16 40 74 / 0.18),
-    inset 0 1.5px 2px 0 rgb(255 255 255 / 0.95),
-    inset 0 -2px 8px 0 rgb(16 40 74 / 0.06);
-  transition: box-shadow 0.3s ease;
+    0 24px 50px -24px rgb(16 40 74 / 0.4),
+    0 6px 16px -10px rgb(16 40 74 / 0.14);
 }
 .save-dock-inner::before {
   content: "";
@@ -1448,13 +1442,6 @@ li:nth-child(odd) > .announce-star {
 }
 .save-dock-inner > * {
   position: relative;
-}
-.save-dock[data-tone="dirty"] .save-dock-inner {
-  box-shadow:
-    0 24px 50px -22px rgb(16 40 74 / 0.45),
-    0 0 0 1px rgb(246 183 60 / 0.35),
-    inset 0 1.5px 2px 0 rgb(255 255 255 / 0.95),
-    inset 0 -2px 8px 0 rgb(16 40 74 / 0.06);
 }
 .save-dock-dot {
   width: 9px;
@@ -1478,7 +1465,7 @@ li:nth-child(odd) > .announce-star {
 }
 .save-dock-btn {
   background: linear-gradient(135deg, #1e8cf5 0%, #0067d1 55%, #0a4fa8 100%);
-  border: 1px solid rgb(255 255 255 / 0.25);
+  border: 0;
   box-shadow:
     0 12px 24px -12px rgb(0 103 209 / 0.85),
     inset 0 1px 1.5px rgb(255 255 255 / 0.55),
