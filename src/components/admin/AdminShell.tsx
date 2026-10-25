@@ -13,7 +13,7 @@ import {
   Images,
   Inbox,
   LogOut,
-  Mail,
+  Mail, MailCheck,
   Menu,
   MessageSquareQuote,
   Package,
@@ -65,6 +65,7 @@ const NAV: { group: string; items: { href: string; label: string; icon: typeof G
     items: [
       { href: "/admin/seo", label: "SEO & Yönlendirme", icon: Search },
       { href: "/admin/bulten", label: "Bülten", icon: Mail },
+      { href: "/admin/e-posta", label: "E-posta (SMTP)", icon: MailCheck, minRole: "admin" },
       { href: "/admin/ayarlar", label: "Ayarlar", icon: Settings, minRole: "admin" },
       { href: "/admin/kullanicilar", label: "Hesap & yöneticiler", icon: UserCog },
     ],

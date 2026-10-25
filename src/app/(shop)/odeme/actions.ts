@@ -13,7 +13,8 @@ import { getCustomer } from "@/lib/auth/customer";
 import { consumeRateLimit } from "@/lib/rate-limit";
 import { getClientIp, getIpHash } from "@/lib/request-meta";
 import { absoluteUrl } from "@/lib/seo/site";
-import { sendEmail } from "@/lib/email";
+import { after } from "next/server";
+import { sendOrderEmail } from "@/lib/mail/order-emails";
 
 export type PlaceOrderResult =
   | { ok: true; redirectTo: string; html?: string }
@@ -112,7 +113,13 @@ export async function placeOrderAction(raw: unknown): Promise<PlaceOrderResult> 
 
   const { order, token, lines } = result;
   const returnUrl = absoluteUrl(`/siparis/${order.orderNumber}?t=${token}`);
-  await sendEmail({ to: email, subject: `Siparişiniz alındı — ${order.orderNumber}`, text: `Sipariş numaranız: ${order.orderNumber}. Sipariş detayları: ${returnUrl}` });
+  // Kartla ödemede e-posta ödeme onaylanınca gider (iyzico geri çağrısı); diğer yöntemlerde sipariş anında.
+  if (provider.id !== "iyzico") {
+    after(async () => {
+      await sendOrderEmail("order_received", order.id, { orderLink: returnUrl });
+      await sendOrderEmail("admin_new_order", order.id);
+    });
+  }
 
   let init: Awaited<ReturnType<typeof provider.initiate>>;
   try {

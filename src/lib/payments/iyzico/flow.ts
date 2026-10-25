@@ -9,6 +9,8 @@ import { absoluteUrl } from "@/lib/seo/site";
 import { getClientIp } from "@/lib/request-meta";
 import { iyzicoProvider } from "../providers/iyzico";
 import { iyzicoConfig, retrieveCheckoutForm, verifyResponseSignature } from "./client";
+import { after } from "next/server";
+import { sendOrderEmail } from "@/lib/mail/order-emails";
 
 export type IyzicoOutcome = "basarili" | "inceleme" | "hata" | "baslatilamadi";
 
@@ -66,7 +68,14 @@ export async function handleIyzicoCallback(orderNumber: string, accessToken: str
     toKurus(res.paidPrice) >= toKurus(o.grandTotal);
 
   if (matches && res.fraudStatus === 1) {
-    await markOrderPaid(o.id, { provider: "iyzico", reference: res.paymentId ?? cfToken, amount: res.paidPrice!, actor: "iyzico", raw: summary });
+    const paidNow = await markOrderPaid(o.id, { provider: "iyzico", reference: res.paymentId ?? cfToken, amount: res.paidPrice!, actor: "iyzico", raw: summary });
+    if (paidNow) {
+      const link = orderUrl(o.orderNumber, accessToken);
+      after(async () => {
+        await sendOrderEmail("payment_confirmed", o.id, { orderLink: link });
+        await sendOrderEmail("admin_new_order", o.id);
+      });
+    }
     return orderUrl(o.orderNumber, accessToken, "basarili");
   }
 

@@ -3,6 +3,7 @@ import { cache } from "react";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { CARRIER_BRAND_KEYS } from "@/lib/commerce/carriers";
+import { DEFAULT_MAIL_TEMPLATES, MAIL_EVENTS, type MailEvent } from "@/lib/mail/templates";
 import { siteSettings } from "@/lib/db/schema";
 
 /**
@@ -119,6 +120,42 @@ export const settingsSchema = z.object({
       installments: z.string().max(40).catch("1,2,3,6,9").default("1,2,3,6,9"),
     })
     .default({ enabled: false, mode: "live", apiKey: null, secretKeyEnc: null, secretLast4: null, installments: "1,2,3,6,9" }),
+  /** Giden e-posta (SMTP). Şifre şifreli saklanır (lib/crypto/secret-box); istemciye gönderilmez. */
+  mail: z
+    .object({
+      enabled: z.boolean().default(false),
+      host: nullableStr.default(null),
+      port: z.number().int().min(1).max(65535).catch(465).default(465),
+      /** ssl: doğrudan SSL/TLS (genelde 465) · starttls: TLS'e yükseltme (genelde 587) · none: şifresiz (önerilmez) */
+      security: z.enum(["ssl", "starttls", "none"]).catch("ssl").default("ssl"),
+      username: nullableStr.default(null),
+      passwordEnc: z.string().max(2000).nullable().catch(null).default(null),
+      passwordSet: z.boolean().catch(false).default(false),
+      fromName: nullableStr.default(null),
+      fromEmail: nullableStr.default(null),
+      replyTo: nullableStr.default(null),
+      /** Yeni sipariş bildirimlerinin gideceği mağaza adresi */
+      notifyEmail: nullableStr.default(null),
+    })
+    .default({ enabled: false, host: null, port: 465, security: "ssl", username: null, passwordEnc: null, passwordSet: false, fromName: null, fromEmail: null, replyTo: null, notifyEmail: null }),
+  mailTemplates: z
+    .object(
+      Object.fromEntries(
+        MAIL_EVENTS.map((ev) => [
+          ev,
+          z
+            .object({
+              enabled: z.boolean().catch(true),
+              subject: z.string().max(200).catch(DEFAULT_MAIL_TEMPLATES[ev].subject),
+              heading: z.string().max(200).catch(DEFAULT_MAIL_TEMPLATES[ev].heading),
+              body: z.string().max(5000).catch(DEFAULT_MAIL_TEMPLATES[ev].body),
+            })
+            .catch(DEFAULT_MAIL_TEMPLATES[ev])
+            .default(DEFAULT_MAIL_TEMPLATES[ev]),
+        ]),
+      ) as { [K in MailEvent]: z.ZodDefault<z.ZodCatch<z.ZodObject<{ enabled: z.ZodCatch<z.ZodBoolean>; subject: z.ZodCatch<z.ZodString>; heading: z.ZodCatch<z.ZodString>; body: z.ZodCatch<z.ZodString> }>>> },
+    )
+    .default(DEFAULT_MAIL_TEMPLATES),
   analytics: z
     .object({
       gtmId: nullableStr.default(null),

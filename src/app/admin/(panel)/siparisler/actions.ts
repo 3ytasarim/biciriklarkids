@@ -9,7 +9,9 @@ import { requireAdmin } from "@/lib/auth/admin";
 import { formObject, isUuid, optional, zodErrors, type ActionState } from "@/lib/admin/form";
 import { markOrderPaid, ORDER_STATUS_LABELS, restockOrder, type OrderStatus } from "@/lib/commerce/orders";
 import { revalidateSite } from "@/lib/admin/revalidate";
-import { sendEmail } from "@/lib/email";
+import { after } from "next/server";
+import { sendOrderEmail } from "@/lib/mail/order-emails";
+import type { MailEvent } from "@/lib/mail/templates";
 
 const STATUSES = Object.keys(ORDER_STATUS_LABELS) as [OrderStatus, ...OrderStatus[]];
 
@@ -64,7 +66,11 @@ export async function updateOrderAction(id: string, _prev: ActionState, fd: Form
       actor: admin.name,
     });
   }
-  if (statusChanged) await sendEmail({ to: o.email, subject: `Siparişiniz ${o.orderNumber}: ${ORDER_STATUS_LABELS[d.status]}`, text: `Sipariş durumunuz güncellendi: ${ORDER_STATUS_LABELS[d.status]}.` });
+  if (statusChanged) {
+    const event: MailEvent | null =
+      d.status === "shipped" ? "order_shipped" : d.status === "delivered" ? "order_delivered" : d.status === "cancelled" || d.status === "refunded" ? "order_cancelled" : d.status === "confirmed" || d.status === "processing" ? "order_status" : null;
+    if (event) after(() => sendOrderEmail(event, id));
+  }
 
   revalidatePath(`/admin/siparisler/${id}`);
   if (statusChanged && nowInactive) revalidateSite();
@@ -77,6 +83,7 @@ export async function markPaidAction(id: string): Promise<{ ok: true } | { ok: f
   const [o] = await db.select({ grandTotal: orders.grandTotal, paymentProvider: orders.paymentProvider }).from(orders).where(eq(orders.id, id)).limit(1);
   if (!o) return { ok: false, error: "Sipariş bulunamadı." };
   const changed = await markOrderPaid(id, { provider: o.paymentProvider, amount: o.grandTotal, actor: admin.name, reference: "admin-onay" });
+  if (changed) after(() => sendOrderEmail("payment_confirmed", id));
   revalidatePath(`/admin/siparisler/${id}`);
   return changed ? { ok: true } : { ok: false, error: "Sipariş zaten ödenmiş görünüyor." };
 }
