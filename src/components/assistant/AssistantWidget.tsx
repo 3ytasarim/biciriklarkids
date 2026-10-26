@@ -284,7 +284,7 @@ export function AssistantWidget() {
           type="button"
           onClick={openPanel}
           aria-label="BıcırıklarBot asistanını aç"
-          className="bot-launcher relative flex h-16 w-16 items-center justify-center rounded-full bg-[linear-gradient(135deg,#1e8cf5,#0067d1_60%,#0a4fa8)] shadow-[0_18px_36px_-14px_rgb(0_103_209/0.9)] transition-transform hover:scale-105"
+          className="bot-launcher relative isolate flex h-16 w-16 items-center justify-center rounded-full transition-transform hover:scale-105"
         >
           <BotAvatar className="h-12 w-12" />
           <span aria-hidden="true" className="absolute top-0.5 right-0.5 h-3.5 w-3.5 rounded-full border-2 border-white bg-emerald-400" />
