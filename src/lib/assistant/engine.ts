@@ -16,7 +16,7 @@ import { normalizeSearch } from "@/lib/utils";
  * (ürünler, fiyatlar, kargo/ödeme ayarları, iade süresi, SSS); bilgi yoksa uydurmaz, ilgili sayfaya yönlendirir.
  */
 export type BotProduct = { slug: string; name: string; price: number; compareAtPrice: number | null; image: string | null; category: string | null; age: string | null };
-export type BotReply = { text: string; products?: BotProduct[]; links?: { label: string; href: string }[]; quick?: string[] };
+export type BotReply = { text: string; products?: BotProduct[]; links?: { label: string; href: string }[]; quick?: string[]; ai?: boolean };
 
 const QUICK_DEFAULT = ["Boyama setleri", "Kargo ücreti ne kadar?", "3 yaş için ne önerirsin?", "Hediye önerisi", "Siparişim nerede?"];
 
@@ -49,7 +49,7 @@ const BROAD: [RegExp, string[]][] = [[/etkinlik|aktivite|kendin yap|diy|el isi|e
 
 const has = (n: string, re: RegExp) => re.test(n);
 
-async function toBotProducts(ids: string[]): Promise<BotProduct[]> {
+export async function toBotProducts(ids: string[]): Promise<BotProduct[]> {
   if (!ids.length) return [];
   const cards = await getProductCards({ ids }, "onerilen", ids.length);
   const order = new Map(ids.map((id, i) => [id, i]));
@@ -87,7 +87,7 @@ async function findProducts(keys: Key[], extra: SQL[] = [], limit = 6): Promise<
   return toBotProducts(rows.map((r) => r.id));
 }
 
-function shippingText(s: SiteSettings): string {
+export function shippingText(s: SiteSettings): string {
   const carriers = activeCarriers(s.shipping);
   const lines: string[] = [];
   if (carriers.length) {
@@ -116,7 +116,7 @@ function faqAnswer(n: string): BotReply | null {
   return null;
 }
 
-export async function answer(message: string): Promise<BotReply> {
+export async function ruleAnswer(message: string): Promise<BotReply> {
   const n = normalizeSearch(message).replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
   const s = await getSiteSettings();
   if (!n) return { text: "Size nasıl yardımcı olabilirim?", quick: QUICK_DEFAULT };

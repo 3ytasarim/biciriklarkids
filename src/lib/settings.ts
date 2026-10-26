@@ -120,6 +120,15 @@ export const settingsSchema = z.object({
       installments: z.string().max(40).catch("1,2,3,6,9").default("1,2,3,6,9"),
     })
     .default({ enabled: false, mode: "live", apiKey: null, secretKeyEnc: null, secretLast4: null, installments: "1,2,3,6,9" }),
+  /** BıcırıklarBot yapay zekâ katmanı (OpenAI). Anahtar şifreli saklanır; kapalıysa kural tabanlı asistan çalışır. */
+  ai: z
+    .object({
+      enabled: z.boolean().default(false),
+      apiKeyEnc: z.string().max(2000).nullable().catch(null).default(null),
+      apiKeyLast4: z.string().max(4).nullable().catch(null).default(null),
+      model: z.string().trim().max(60).catch("gpt-4o-mini").default("gpt-4o-mini"),
+    })
+    .default({ enabled: false, apiKeyEnc: null, apiKeyLast4: null, model: "gpt-4o-mini" }),
   /** Giden e-posta (SMTP). Şifre şifreli saklanır (lib/crypto/secret-box); istemciye gönderilmez. */
   mail: z
     .object({

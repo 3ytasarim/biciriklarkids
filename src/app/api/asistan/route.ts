@@ -1,10 +1,16 @@
 import { z } from "zod";
-import { answer } from "@/lib/assistant/engine";
+import { respond } from "@/lib/assistant/respond";
 import { consumeRateLimit } from "@/lib/rate-limit";
 import { getIpHash } from "@/lib/request-meta";
 
-/** BıcırıklarBot: kullanıcı mesajı → sitenin verisinden kurulan yanıt (ürün kartları + bağlantılar). */
-const body = z.object({ message: z.string().trim().min(1).max(300) });
+/** BıcırıklarBot: kullanıcı mesajı (+ kısa geçmiş) → mağaza verisine dayalı yanıt (ürün kartları + bağlantılar). */
+const body = z.object({
+  message: z.string().trim().min(1).max(300),
+  history: z
+    .array(z.object({ role: z.enum(["user", "assistant"]), text: z.string().max(1200) }))
+    .max(8)
+    .optional(),
+});
 
 export async function POST(req: Request) {
   const parsed = body.safeParse(await req.json().catch(() => null));
@@ -13,7 +19,7 @@ export async function POST(req: Request) {
     return Response.json({ text: "Çok hızlı soru sordunuz 🙂 Lütfen birkaç dakika sonra tekrar deneyin." }, { status: 429 });
   }
   try {
-    return Response.json(await answer(parsed.data.message), { headers: { "Cache-Control": "no-store" } });
+    return Response.json(await respond(parsed.data.message, parsed.data.history ?? []), { headers: { "Cache-Control": "no-store" } });
   } catch (e) {
     console.error("[asistan]", e);
     return Response.json({ text: "Şu an yanıt veremiyorum. Ürünlere göz atabilir ya da İletişim sayfasından bize yazabilirsiniz.", links: [{ label: "Tüm ürünler", href: "/urunler" }, { label: "İletişim", href: "/iletisim" }] }, { status: 200 });

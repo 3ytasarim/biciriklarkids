@@ -8,7 +8,7 @@ import { ChevronRight, Send, X } from "lucide-react";
 import { formatPrice } from "@/lib/commerce/money";
 
 type BotProduct = { slug: string; name: string; price: number; compareAtPrice: number | null; image: string | null; category: string | null; age: string | null };
-type Msg = { id: number; from: "bot" | "user"; text: string; products?: BotProduct[]; links?: { label: string; href: string }[]; quick?: string[] };
+type Msg = { id: number; from: "bot" | "user"; text: string; products?: BotProduct[]; links?: { label: string; href: string }[]; quick?: string[]; ai?: boolean };
 
 const STORE = "bk_bot_v1";
 const AUTO_KEY = "bk_bot_auto";
@@ -132,12 +132,17 @@ export function AssistantWidget() {
     const q = text.trim().slice(0, 300);
     if (!q || busy) return;
     setInput("");
+    // Bağlam için son birkaç mesaj (karşılama hariç)
+    const history = msgs
+      .filter((m) => m.id !== 0)
+      .slice(-6)
+      .map((m) => ({ role: m.from === "user" ? ("user" as const) : ("assistant" as const), text: m.text.slice(0, 1200) }));
     setMsgs((m) => [...m, { id: nextId.current++, from: "user", text: q }]);
     setBusy(true);
     try {
-      const res = await fetch("/api/asistan", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: q }) });
+      const res = await fetch("/api/asistan", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: q, history }) });
       const data = (await res.json()) as Omit<Msg, "id" | "from">;
-      setMsgs((m) => [...m, { id: nextId.current++, from: "bot", text: data.text ?? "Bir sorun oluştu.", products: data.products, links: data.links, quick: data.quick }]);
+      setMsgs((m) => [...m, { id: nextId.current++, from: "bot", text: data.text ?? "Bir sorun oluştu.", products: data.products, links: data.links, quick: data.quick, ai: data.ai }]);
     } catch {
       setMsgs((m) => [...m, { id: nextId.current++, from: "bot", text: "Bağlantı kurulamadı. Lütfen tekrar deneyin." }]);
     } finally {
@@ -176,6 +181,7 @@ export function AssistantWidget() {
                   <BotAvatar className="mt-0.5 h-7 w-7" />
                   <div className="min-w-0 flex-1 space-y-2">
                     <p className="w-fit max-w-full rounded-2xl rounded-tl-md bg-white px-3.5 py-2.5 text-[14px] leading-relaxed whitespace-pre-line text-ink shadow-[0_6px_16px_-10px_rgb(16_40_74/0.35)]">{m.text}</p>
+                    {m.ai ? <p className="text-[11px] text-muted">Yapay zekâ ile oluşturuldu · bilgiler sitedeki ürünlerden</p> : null}
                     {m.products?.length ? (
                       <ul className="space-y-2">
                         {m.products.map((p) => (

@@ -3,7 +3,7 @@ import { getSiteSettings } from "@/lib/settings";
 import { decryptSecret } from "@/lib/crypto/secret-box";
 import { iyzicoConfig, iyzicoFromEnv } from "@/lib/payments/iyzico/client";
 import { PageHeader } from "@/components/admin/ui";
-import { SettingsForm, type IyzicoStatus } from "./SettingsForm";
+import { SettingsForm, type AiStatus, type IyzicoStatus } from "./SettingsForm";
 
 export const metadata = { title: "Ayarlar" };
 
@@ -22,12 +22,13 @@ export default async function SettingsPage() {
     secretStored: Boolean(s.iyzico.secretKeyEnc),
     secretReadable: decryptSecret(s.iyzico.secretKeyEnc) !== null,
   };
-  const safe = { ...s, iyzico: { ...s.iyzico, secretKeyEnc: null } };
+  const aiStatus: AiStatus = { fromEnv: Boolean(process.env.OPENAI_API_KEY?.trim()), keyReadable: decryptSecret(s.ai.apiKeyEnc) !== null };
+  const safe = { ...s, iyzico: { ...s.iyzico, secretKeyEnc: null }, ai: { ...s.ai, apiKeyEnc: null }, mail: { ...s.mail, passwordEnc: null } };
 
   return (
     <>
       <PageHeader title="Site ayarları" />
-      <SettingsForm s={safe} envOverrides={envOverrides} iyzicoStatus={iyzicoStatus} />
+      <SettingsForm s={safe} envOverrides={envOverrides} iyzicoStatus={iyzicoStatus} aiStatus={aiStatus} />
     </>
   );
 }

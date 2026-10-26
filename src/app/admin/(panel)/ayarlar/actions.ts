@@ -82,6 +82,17 @@ const schema = z.object({
     .trim()
     .max(200)
     .refine((v) => v === "" || /^[A-Za-z0-9._-]{8,200}$/.test(v), "Gizli anahtarda boşluk veya geçersiz karakter var; iyzico panelinden kopyalayıp yapıştırın."),
+  aiEnabled: bool,
+  aiModel: z
+    .string()
+    .trim()
+    .max(60)
+    .refine((v) => v === "" || /^[a-z0-9.:_-]+$/i.test(v), "Model adı geçersiz (ör. gpt-4o-mini)."),
+  aiApiKey: z
+    .string()
+    .trim()
+    .max(300)
+    .refine((v) => v === "" || /^sk-[A-Za-z0-9_-]{20,}$/.test(v), "OpenAI API anahtarı “sk-” ile başlamalı; boşluk olmadan kopyalayın."),
   bankEnabled: bool,
   bankName: optional(120),
   accountHolder: optional(160),
@@ -165,6 +176,11 @@ export async function saveSettingsAction(_p: ActionState, fd: FormData): Promise
     .map((x) => Number(x.trim()))
     .filter((n) => [1, 2, 3, 6, 9, 12].includes(n));
 
+  // Yapay zekâ: anahtar yazıldıysa şifrelenir, boşsa kayıtlı olan korunur.
+  const prevAi = (await getSiteSettings()).ai;
+  const aiKeyEnc = d.aiApiKey ? encryptSecret(d.aiApiKey) : prevAi.apiKeyEnc;
+  if (d.aiEnabled && !aiKeyEnc && !process.env.OPENAI_API_KEY?.trim()) return { status: "error", message: "Yapay zekâ asistanını açmak için OpenAI API anahtarı gerekli.", errors: { aiApiKey: "Zorunlu." } };
+
   const carriers = parseCarriers(fd);
   if ("error" in carriers) return { status: "error", message: carriers.error };
   await Promise.all([
@@ -175,6 +191,7 @@ export async function saveSettingsAction(_p: ActionState, fd: FormData): Promise
     saveSetting("popup", { enabled: d.popupEnabled, imageUrl: d.popupImage, alt: d.popupAlt ?? "", href: popupHref, startsAt: d.popupStartsAt, endsAt: d.popupEndsAt, delaySeconds: d.popupDelay, hideDays: d.popupHideDays }),
     saveSetting("shipping", { flatFee: d.flatFee, freeThreshold: d.freeThreshold, dispatchTime: d.dispatchTime, carriers: carriers.carriers }),
     saveSetting("iyzico", { enabled: d.iyzicoEnabled, mode: d.iyzicoMode, apiKey, secretKeyEnc, secretLast4, installments: [...new Set([1, ...installments])].sort((x, y) => x - y).join(",") }),
+    saveSetting("ai", { enabled: d.aiEnabled, apiKeyEnc: aiKeyEnc, apiKeyLast4: d.aiApiKey ? d.aiApiKey.slice(-4) : prevAi.apiKeyLast4, model: d.aiModel || "gpt-4o-mini" }),
     saveSetting("payments", { bankTransfer: { enabled: d.bankEnabled, bankName: d.bankName, accountHolder: d.accountHolder, iban: d.iban, note: d.bankNote } }),
     saveSetting("analytics", { gtmId: d.gtmId, ga4Id: d.ga4Id, googleAdsId: d.googleAdsId, metaPixelId: d.metaPixelId }),
     saveSetting("commerce", { returnDays: d.returnDays, googleProductCategory: d.googleProductCategory }),

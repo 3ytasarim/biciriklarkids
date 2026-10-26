@@ -8,12 +8,14 @@ import { FaqEditor } from "@/components/admin/FaqEditor";
 import { CarriersEditor } from "@/components/admin/CarriersEditor";
 import type { SiteSettings } from "@/lib/settings";
 import { saveSettingsAction } from "./actions";
+import { AiTestButton } from "./AiTestButton";
 
 const n = (v: number | null | undefined) => (v == null ? "" : String(v));
 
 export type IyzicoStatus = { fromEnv: boolean; active: boolean; secretStored: boolean; secretReadable: boolean };
+export type AiStatus = { fromEnv: boolean; keyReadable: boolean };
 
-export function SettingsForm({ s, envOverrides, iyzicoStatus }: { s: SiteSettings; envOverrides: string[]; iyzicoStatus: IyzicoStatus }) {
+export function SettingsForm({ s, envOverrides, iyzicoStatus, aiStatus }: { s: SiteSettings; envOverrides: string[]; iyzicoStatus: IyzicoStatus; aiStatus: AiStatus }) {
   return (
     <AdminForm action={saveSettingsAction} className="max-w-4xl space-y-6">
       <Section title="Marka">
@@ -137,6 +139,27 @@ export function SettingsForm({ s, envOverrides, iyzicoStatus }: { s: SiteSetting
             placeholder={s.iyzico.secretLast4 ? `Kayıtlı (sonu ••••${s.iyzico.secretLast4}) — değiştirmek için yenisini yazın` : "Gizli anahtarı yapıştırın"}
           />
         </div>
+      </Section>
+
+      <Section
+        title="Yapay zekâ asistanı (OpenAI)"
+        description="BıcırıklarBot'u yapay zekâyla güçlendirir: müşterinin serbest yazdığı soruları anlar ve yalnızca sitedeki ürün, fiyat, kargo ve iade bilgilerine dayanarak yanıtlar. Kapalıysa ya da hata olursa kural tabanlı asistan çalışır. Anahtar şifreli saklanır ve bir daha ekranda gösterilmez."
+      >
+        {aiStatus.fromEnv ? <p className="rounded-sm bg-amber-50 p-3 text-sm text-amber-900">Sunucuda OPENAI_API_KEY tanımlı; anahtar olarak o kullanılıyor.</p> : null}
+        <Checkbox name="aiEnabled" label="Yapay zekâ asistanını aç" defaultChecked={s.ai.enabled} />
+        <div className="grid gap-5 sm:grid-cols-2">
+          <TextInput
+            name="aiApiKey"
+            label="OpenAI API anahtarı"
+            type="password"
+            autoComplete="new-password"
+            spellCheck={false}
+            placeholder={s.ai.apiKeyLast4 ? (aiStatus.keyReadable ? `Kayıtlı (sonu ••••${s.ai.apiKeyLast4}) — değiştirmek için yenisini yazın` : "Kayıtlı anahtar bu sunucuda çözülemedi, yeniden girin") : "sk-..."}
+            hint="platform.openai.com › API keys. Boş bırakırsanız kayıtlı anahtar korunur."
+          />
+          <TextInput name="aiModel" label="Model" defaultValue={s.ai.model} placeholder="gpt-4o-mini" hint="Hızlı ve ekonomik bir model önerilir (ör. gpt-4o-mini)." />
+        </div>
+        <AiTestButton />
       </Section>
 
       <Section title="Ödeme: Havale / EFT" description="IBAN girilmeden bu yöntem ödeme sayfasında görünmez. Kartla ödeme yukarıdaki iyzico bölümünden açılır.">
