@@ -4,6 +4,7 @@ import { categories, productImages, products } from "@/lib/db/schema";
 import { getSiteSettings } from "@/lib/settings";
 import { absoluteUrl } from "@/lib/seo/site";
 import { htmlToText } from "@/lib/sanitize";
+import { defaultCarrier, shippingRuleFor } from "@/lib/commerce/carriers";
 
 export const revalidate = 3600;
 
@@ -14,10 +15,12 @@ const money = (n: number) => `${n.toFixed(2)} TRY`;
  * Google Merchant Center ürün feed'i (RSS 2.0 + g: ad alanı), sunucuda üretilir.
  * Yalnızca aktif, demo olmayan, görseli olan ürünler. Alanlar: id, title, description, link, image_link,
  * additional_image_link, availability, price, sale_price, brand, condition, gtin, mpn, google_product_category,
- * product_type, identifier_exists, shipping (yalnızca admin'de sabit kargo ücreti tanımlıysa).
+ * product_type, identifier_exists, shipping (admin'deki en ucuz kargo firması ya da sabit ücret; eşik üstünde 0).
  */
 export async function GET() {
   const settings = await getSiteSettings();
+  // Kargo: en ucuz aktif firma, yoksa sabit ücret; eşik üstü ürünlerde 0. Ücret yoksa etiket yazılmaz.
+  const ship = shippingRuleFor(settings.shipping, defaultCarrier(settings.shipping));
   const rows = await db
     .select({
       id: products.id,
@@ -86,7 +89,7 @@ export async function GET() {
         r.categoryName ? `<g:product_type>${esc([r.categoryName, r.productType].filter(Boolean).join(" > "))}</g:product_type>` : "",
         "<g:age_group>kids</g:age_group>",
         r.weightGrams ? `<g:shipping_weight>${r.weightGrams} g</g:shipping_weight>` : "",
-        settings.shipping.flatFee != null ? `<g:shipping><g:country>TR</g:country><g:price>${money(settings.shipping.freeThreshold != null && r.price >= settings.shipping.freeThreshold ? 0 : settings.shipping.flatFee)}</g:price></g:shipping>` : "",
+        ship.flatFee != null ? `<g:shipping><g:country>TR</g:country><g:price>${money(ship.freeThreshold != null && r.price >= ship.freeThreshold ? 0 : ship.flatFee)}</g:price></g:shipping>` : "",
       ].filter(Boolean);
       return `<item>${tags.join("")}</item>`;
     });

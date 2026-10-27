@@ -22,7 +22,7 @@ const QUICK_DEFAULT = ["Boyama setleri", "Kargo ücreti ne kadar?", "3 yaş içi
 
 /** Sohbet dolgusu: ürün aramasında anlam taşımayan kelimeler (normalize edilmiş). */
 const STOP = new Set(
-  "ben benim bana bir bu su o ve ile icin gibi cok daha en mi mu mi misiniz var mi yok ne neler nasil hangi kac olan olarak de da ki ama veya ya cocugum cocuguma cocugu cocuk cocuklar cocuklara oglum ogluma kizim kizima yegenim yegenime arkadasim ariyorum aradim istiyorum istiyoruz isterim lazim onerir onerin oner onerisi oneri tavsiye bakiyorum bakmak goster gosterir gosterin bul bulur bulabilir urun urunler urunu setler seti sey seyler alabilir alirim almak almak icin merhaba selam lutfen tesekkurler sizde sizin elinizde neyiniz hangileri tum tumu bana fiyat fiyati fiyatlari kac tl ucret ucreti ne kadar setleri setler kit kiti kitleri takim takimi model modeller cesit cesitleri onerirsin onerir onerebilir onerebilirsin oneriniz alayim almaliyim alsam olur uygun guzel tas yas yasinda yaslarinda yasindaki".split(" "),
+  "ben benim bana bir bu su o ve ile icin gibi cok daha en mi mu mi misiniz var mi yok ne neler nasil hangi kac olan olarak de da ki ama veya ya cocugum cocuguma cocugu cocuk cocuklar cocuklara oglum ogluma kizim kizima yegenim yegenime arkadasim ariyorum aradim istiyorum istiyoruz isterim lazim onerir onerin oner onerisi oneri tavsiye bakiyorum bakmak goster gosterir gosterin bul bulur bulabilir urun urunler urunu setler seti sey seyler alabilir alirim almak almak icin merhaba selam lutfen tesekkurler sizde sizin elinizde neyiniz hangileri tum tumu bana fiyat fiyati fiyatlari kac tl ucret ucreti ne kadar setleri setler kit kiti kitleri takim takimi model modeller cesit cesitleri onerirsin onerir onerebilir onerebilirsin oneriniz alayim almaliyim alsam olur uygun guzel yas yasinda yaslarinda yasindaki".split(" "),
 );
 
 /** Eş anlamlılar → katalogdaki arama metnine uyan anahtarlar. */
@@ -34,6 +34,8 @@ const SYNONYMS: [RegExp, string[]][] = [
   [/punch|orgu|nakis/, ["punch"]],
   [/ahsap|tahta/, ["ahsap"]],
   [/alci/, ["alci"]],
+  [/\btas\b/, ["tas boyama"]],
+  [/tas/, ["tas boyama"]],
   [/seccade|namaz/, ["seccade"]],
   [/karne/, ["karne"]],
   [/takvim|gunleri|hafta/, ["takvim", "gunleri"]],
