@@ -40,13 +40,18 @@ export function mailReady(m: Mail): boolean {
 export function explainSmtpError(e: unknown): string {
   const err = e as { code?: string; responseCode?: number; message?: string };
   const msg = String(err?.message ?? "");
-  if (err?.code === "EAUTH" || err?.responseCode === 535) return "Kullanıcı adı veya şifre kabul edilmedi. Gmail/Outlook kullanıyorsanız normal şifre yerine “uygulama şifresi” gerekir.";
-  if (/wrong version number|ssl3_get_record|EPROTO/i.test(msg)) return "SSL/TLS ayarı sunucuyla uyuşmuyor. 465 için “SSL/TLS”, 587 için “STARTTLS” seçin.";
-  if (err?.code === "ETIMEDOUT" || err?.code === "ECONNECTION" || err?.code === "ESOCKET") return "SMTP sunucusuna bağlanılamadı. Sunucu adını, portu ve güvenlik seçimini kontrol edin.";
-  if (err?.code === "ENOTFOUND" || /getaddrinfo/i.test(msg)) return "SMTP sunucu adı bulunamadı (ör. mail.alanadiniz.com).";
-  if (/self[- ]signed|certificate/i.test(msg)) return "Sunucunun SSL sertifikası doğrulanamadı; sunucu adını sertifikadaki adla aynı yazın.";
-  if (err?.responseCode && err.responseCode >= 500) return `Sunucu iletiyi reddetti (${err.responseCode}). Gönderen adresin bu hesaba ait olduğundan emin olun.`;
-  return "E-posta gönderilemedi. SMTP bilgilerini kontrol edin.";
+  const code = [err?.code, err?.responseCode].filter(Boolean).join("/");
+  const tag = code ? ` [${code}]` : "";
+  // Sıra önemli: sertifika ve TLS sürüm hataları da ESOCKET koduyla gelir; önce onlar ayıklanır.
+  if (err?.code === "EAUTH" || err?.responseCode === 535) return `Kullanıcı adı veya şifre kabul edilmedi. Gmail/Outlook kullanıyorsanız normal şifre yerine “uygulama şifresi” gerekir.${tag}`;
+  if (/self[- ]signed|certificate|altnames|CERT_/i.test(msg)) return `Sunucunun SSL sertifikası doğrulanamadı; sunucu adını sertifikadaki adla aynı yazın.${tag}`;
+  if (/wrong version number|ssl3_get_record|EPROTO/i.test(msg)) return `SSL/TLS ayarı sunucuyla uyuşmuyor. 465 için “SSL/TLS”, 587 için “STARTTLS” seçin.${tag}`;
+  if (err?.code === "ENOTFOUND" || /getaddrinfo/i.test(msg)) return `SMTP sunucu adı bulunamadı (ör. mail.alanadiniz.com).${tag}`;
+  if (/ECONNREFUSED/.test(msg)) return `SMTP sunucusu bağlantıyı reddetti; port kapalı ya da sunucu bu IP'yi engelliyor olabilir.${tag}`;
+  if (err?.code === "ETIMEDOUT" || /timeout|timed out/i.test(msg)) return `SMTP sunucusuna bağlantı zaman aşımına uğradı; barındırma sağlayıcınız giden e-posta portlarını (587/465) engelliyor olabilir.${tag}`;
+  if (err?.code === "ECONNECTION" || err?.code === "ESOCKET") return `SMTP sunucusuna bağlanılamadı: ${msg.slice(0, 120)}${tag}`;
+  if (err?.responseCode && err.responseCode >= 500) return `Sunucu iletiyi reddetti (${err.responseCode}). Gönderen adresin bu hesaba ait olduğundan emin olun.${tag}`;
+  return `E-posta gönderilemedi: ${msg.slice(0, 120)}${tag}`;
 }
 
 export async function sendEmail(email: Email, settings?: SiteSettings): Promise<SendResult> {
