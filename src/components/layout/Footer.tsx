@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Mail, MapPin, Phone, ShieldCheck } from "lucide-react";
+import { ExternalLink, Mail, MapPin, Phone, ShieldCheck } from "lucide-react";
 import { FacebookIcon as Facebook, InstagramIcon as Instagram, YoutubeIcon as Youtube } from "@/components/ui/SocialIcons";
 import type { SiteSettings } from "@/lib/settings";
 import { getFooterPages } from "@/lib/content/queries";
@@ -86,6 +86,23 @@ export async function Footer({ settings }: { settings: SiteSettings }) {
             <div className="rounded-md bg-white px-4 py-3 shadow-[0_12px_30px_-18px_rgb(0_0_0/0.5)]">
               <Image src="/brand/odeme-logolari.webp" alt="Ödeme yöntemleri: iyzico ile Öde, Mastercard, Visa, American Express, Troy" width={820} height={87} sizes="(min-width: 640px) 420px, 90vw" className="h-auto w-full" />
             </div>
+            {/* ETBİS kaydı: Ticaret Bakanlığı'nın resmî site sorgulama sayfasına bağlantı (kayıt bilgisi; onay/garanti iddiası değil) */}
+            <a
+              href="https://etbis.ticaret.gov.tr/tr/SiteSorgulamaSonuc?siteId=53ef57ae-812b-4b71-8571-f0cccac4c8f9"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="ETBİS'e kayıtlı e-ticaret sitesi — T.C. Ticaret Bakanlığı resmî kayıt sorgulama sayfası (yeni sekmede açılır)"
+              className="group mt-3 flex min-h-14 items-center gap-3 rounded-md border border-white/15 bg-white/[0.06] px-4 py-3 transition-colors hover:border-white/35 hover:bg-white/10"
+            >
+              <span aria-hidden="true" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 text-sun">
+                <ShieldCheck className="h-5 w-5" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm leading-snug font-extrabold text-white">ETBİS&apos;e Kayıtlı E-Ticaret Sitesi</span>
+                <span className="block text-xs leading-snug text-white/65">T.C. Ticaret Bakanlığı – Resmî Kayıt Sorgulama</span>
+              </span>
+              <ExternalLink aria-hidden="true" className="h-4 w-4 shrink-0 text-white/50 transition-colors group-hover:text-white" />
+            </a>
           </div>
         </div>
 
